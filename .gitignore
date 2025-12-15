@@ -1,0 +1,45 @@
+# Compiled dynamic libraries
+*.so
+
+# Compiled static libraries
+*.a
+
+# Executable files
+*.out
+*.exe
+a.out
+
+# Debug files
+*.dSYM/
+*.stackdump
+
+# System files
+.DS_Store
+Thumbs.db
+
+# CMake build directory
+/build/
+
+# User-specific files
+*.swp
+*.swo
+*~
+
+# GCC compiler files
+*.d
+
+# Exclude compiled files with no extension
+*
+!*/
+!*.*
+!Makefile
+
+# Ignore all markdown files except README.md
+*.md
+!README.md
+
+# Visual Studio Code directory
+# .vscode/
+
+# Compiled object files
+*.o
