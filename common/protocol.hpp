@@ -61,7 +61,11 @@ enum class MessageType : uint8_t
     SPECTATE_FAILURE = 0x62,
     SPECTATE_MOVE = 0x63,
     SPECTATE_END = 0x64,
-    SPECTATE_EXIT = 0x65
+    SPECTATE_EXIT = 0x65,
+
+    // Additional
+    CHALLENGE_ERROR = 0x5B,
+    GAME_LOG = 0x46
 };
 
 // Cấu trúc gói tin cơ bản

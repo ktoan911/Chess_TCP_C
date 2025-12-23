@@ -1534,4 +1534,197 @@ struct  MatchHistoryMessage {
 };
 #pragma endregion MatchHistoryMessage
 
+#pragma region ChallengeErrorMessage
+/*
+Send from server to client to notify that the challenge request is invalid.
+
+Payload structure:
+    - uint8_t error_message_length (1 byte)
+    - char[error_message_length] error_message (error_message_length bytes)
+*/
+struct ChallengeErrorMessage
+{
+    std::string error_message;
+
+    MessageType getType() const
+    {
+        return MessageType::CHALLENGE_ERROR;
+    }
+
+    std::vector<uint8_t> serialize() const
+    {
+        std::vector<uint8_t> payload;
+
+        payload.push_back(static_cast<uint8_t>(error_message.size()));
+        payload.insert(payload.end(), error_message.begin(), error_message.end());
+
+        return payload;
+    }
+
+    static ChallengeErrorMessage deserialize(const std::vector<uint8_t> &payload)
+    {
+        ChallengeErrorMessage message;
+
+        size_t pos = 0;
+        uint8_t error_message_length = payload[pos++];
+        message.error_message = std::string(payload.begin() + pos, payload.begin() + pos + error_message_length);
+
+        return message;
+    }
+};
+#pragma endregion ChallengeErrorMessage
+
+#pragma region GameLogMessage
+/*
+Send from server to both clients after game ends to provide the game log.
+
+Payload structure:
+    - uint8_t game_id_length (1 byte)
+    - char[game_id_length] game_id (game_id_length bytes)
+    - uint64_t start_time (8 bytes) - epoch time in nanoseconds
+    - uint64_t end_time (8 bytes) - epoch time in nanoseconds
+    - uint8_t white_ip_length (1 byte)
+    - char[white_ip_length] white_ip (white_ip_length bytes)
+    - uint8_t black_ip_length (1 byte)
+    - char[black_ip_length] black_ip (black_ip_length bytes)
+    - uint8_t winner_length (1 byte)
+    - char[winner_length] winner (winner_length bytes)
+    - uint8_t reason_length (1 byte)
+    - char[reason_length] reason (reason_length bytes)
+    - uint16_t moves_count (2 bytes)
+    - [Move 1][Move 2]...
+    
+Move structure:
+    - uint8_t uci_move_length (1 byte)
+    - char[uci_move_length] uci_move
+*/
+struct GameLogMessage
+{
+    std::string game_id;
+    int64_t start_time;
+    int64_t end_time;
+    std::string white_ip;
+    std::string black_ip;
+    std::string winner;
+    std::string reason;
+    std::vector<std::string> moves;
+
+    MessageType getType() const
+    {
+        return MessageType::GAME_LOG;
+    }
+
+    std::vector<uint8_t> serialize() const
+    {
+        std::vector<uint8_t> payload;
+
+        // game_id
+        payload.push_back(static_cast<uint8_t>(game_id.size()));
+        payload.insert(payload.end(), game_id.begin(), game_id.end());
+
+        // start_time (8 bytes, big endian)
+        for (int i = 7; i >= 0; i--)
+        {
+            payload.push_back(static_cast<uint8_t>((start_time >> (i * 8)) & 0xFF));
+        }
+
+        // end_time (8 bytes, big endian)
+        for (int i = 7; i >= 0; i--)
+        {
+            payload.push_back(static_cast<uint8_t>((end_time >> (i * 8)) & 0xFF));
+        }
+
+        // white_ip
+        payload.push_back(static_cast<uint8_t>(white_ip.size()));
+        payload.insert(payload.end(), white_ip.begin(), white_ip.end());
+
+        // black_ip
+        payload.push_back(static_cast<uint8_t>(black_ip.size()));
+        payload.insert(payload.end(), black_ip.begin(), black_ip.end());
+
+        // winner
+        payload.push_back(static_cast<uint8_t>(winner.size()));
+        payload.insert(payload.end(), winner.begin(), winner.end());
+
+        // reason
+        payload.push_back(static_cast<uint8_t>(reason.size()));
+        payload.insert(payload.end(), reason.begin(), reason.end());
+
+        // moves_count (2 bytes, big endian)
+        uint16_t moves_count = static_cast<uint16_t>(moves.size());
+        payload.push_back(static_cast<uint8_t>((moves_count >> 8) & 0xFF));
+        payload.push_back(static_cast<uint8_t>(moves_count & 0xFF));
+
+        // moves
+        for (const auto &move : moves)
+        {
+            payload.push_back(static_cast<uint8_t>(move.size()));
+            payload.insert(payload.end(), move.begin(), move.end());
+        }
+
+        return payload;
+    }
+
+    static GameLogMessage deserialize(const std::vector<uint8_t> &payload)
+    {
+        GameLogMessage message;
+
+        size_t pos = 0;
+
+        // game_id
+        uint8_t game_id_length = payload[pos++];
+        message.game_id = std::string(payload.begin() + pos, payload.begin() + pos + game_id_length);
+        pos += game_id_length;
+
+        // start_time
+        message.start_time = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            message.start_time = (message.start_time << 8) | payload[pos++];
+        }
+
+        // end_time
+        message.end_time = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            message.end_time = (message.end_time << 8) | payload[pos++];
+        }
+
+        // white_ip
+        uint8_t white_ip_length = payload[pos++];
+        message.white_ip = std::string(payload.begin() + pos, payload.begin() + pos + white_ip_length);
+        pos += white_ip_length;
+
+        // black_ip
+        uint8_t black_ip_length = payload[pos++];
+        message.black_ip = std::string(payload.begin() + pos, payload.begin() + pos + black_ip_length);
+        pos += black_ip_length;
+
+        // winner
+        uint8_t winner_length = payload[pos++];
+        message.winner = std::string(payload.begin() + pos, payload.begin() + pos + winner_length);
+        pos += winner_length;
+
+        // reason
+        uint8_t reason_length = payload[pos++];
+        message.reason = std::string(payload.begin() + pos, payload.begin() + pos + reason_length);
+        pos += reason_length;
+
+        // moves_count
+        uint16_t moves_count = (static_cast<uint16_t>(payload[pos]) << 8) | static_cast<uint16_t>(payload[pos + 1]);
+        pos += 2;
+
+        // moves
+        for (uint16_t i = 0; i < moves_count; i++)
+        {
+            uint8_t move_length = payload[pos++];
+            message.moves.push_back(std::string(payload.begin() + pos, payload.begin() + pos + move_length));
+            pos += move_length;
+        }
+
+        return message;
+    }
+};
+#pragma endregion GameLogMessage
+
 #endif // MESSAGE_HPP

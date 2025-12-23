@@ -383,8 +383,13 @@ public:
 
         games[game_id] = std::make_shared<Game>(game_id, player_white_name, player_black_name, initial_fen);
 
+        // Get player IPs
+        NetworkServer &network_server = NetworkServer::getInstance();
+        std::string white_ip = network_server.getClientIPByUsername(player_white_name);
+        std::string black_ip = network_server.getClientIPByUsername(player_black_name);
+
         DataStorage &datastorage = DataStorage::getInstance();
-        datastorage.registerMatch(game_id, player_white_name, player_black_name, initial_fen);
+        datastorage.registerMatch(game_id, player_white_name, player_black_name, initial_fen, white_ip, black_ip);
         datastorage.addMatchToUserHistory(player_white_name, game_id);
         datastorage.addMatchToUserHistory(player_black_name, game_id);
         return game_id;
@@ -645,6 +650,37 @@ public:
         network_server.sendPacketToUsername(player_white_name, MessageType::GAME_END, serialized_end);
         network_server.sendPacketToUsername(player_black_name, MessageType::GAME_END, serialized_end);
 
+        // Prepare and send GameLogMessage to both players
+        try
+        {
+            MatchModel match = data_storage.getMatch(game_id);
+            
+            GameLogMessage game_log_msg;
+            game_log_msg.game_id = game_id;
+            game_log_msg.start_time = match.start_time.time_since_epoch().count();
+            game_log_msg.end_time = match.end_time.time_since_epoch().count();
+            game_log_msg.white_ip = match.white_ip;
+            game_log_msg.black_ip = match.black_ip;
+            game_log_msg.winner = winner;
+            game_log_msg.reason = reason;
+            
+            // Collect all moves
+            for (const auto &move : match.moves)
+            {
+                game_log_msg.moves.push_back(move.uci_move);
+            }
+            
+            std::vector<uint8_t> serialized_log = game_log_msg.serialize();
+            network_server.sendPacketToUsername(player_white_name, MessageType::GAME_LOG, serialized_log);
+            network_server.sendPacketToUsername(player_black_name, MessageType::GAME_LOG, serialized_log);
+            
+            std::cout << "[GAME_LOG] Sent game log for " << game_id << " to both players." << std::endl;
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << "[GAME_LOG] Failed to send game log: " << e.what() << std::endl;
+        }
+
         // Prepare and send SpectateEndMessage to all spectators
         SpectateEndMessage spectate_end_msg;
         for (int spectator_fd : game_spectators[game_id])
@@ -653,7 +689,8 @@ public:
             removeSpectator(game_id, spectator_fd);
         }
 
-        // Update ELO ratings if the game is not against a bot
+        // Update points if the game is not against a bot
+        // Point system: Win +3, Draw +0, Lose -3
         if (!game->is_game_with_bot)
         {
             uint16_t white_elo = data_storage.getUserELO(player_white_name);
@@ -663,21 +700,17 @@ public:
 
             if (winner == player_white_name)
             {
-                new_white_elo += 10;
-                new_black_elo -= 10;
+                new_white_elo += 3;  // Win +3
+                new_black_elo = (black_elo >= 3) ? black_elo - 3 : 0;  // Lose -3
             }
             else if (winner == player_black_name)
             {
-                new_white_elo -= 10;
-                new_black_elo += 10;
+                new_white_elo = (white_elo >= 3) ? white_elo - 3 : 0;  // Lose -3
+                new_black_elo += 3;  // Win +3
             }
-            else if (winner == "<0>") // Draw
-            {
-                new_white_elo += 5;
-                new_black_elo += 5;
-            }
+            // Draw: no point change (+0)
 
-            // Update ELO ratings
+            // Update points
             data_storage.updateUserELO(player_white_name, new_white_elo);
             data_storage.updateUserELO(player_black_name, new_black_elo);
         }
@@ -735,12 +768,12 @@ public:
             }
             // End sending to spectators
 
-            // Update ELO ratings
+            // Update points (disconnect = lose: -3, opponent wins: +3)
             DataStorage &data_storage = DataStorage::getInstance();
             int current_elo = data_storage.getUserELO(username);
             int current_opponent_elo = data_storage.getUserELO(opponent_name);
-            int new_elo = current_elo - 10;
-            int new_opponent_elo = current_opponent_elo + 10;
+            int new_elo = (current_elo >= 3) ? current_elo - 3 : 0;  // Lose -3
+            int new_opponent_elo = current_opponent_elo + 3;  // Win +3
 
             data_storage.updateUserELO(username, new_elo);
             data_storage.updateUserELO(opponent_name, new_opponent_elo);
@@ -1020,20 +1053,21 @@ public:
         uint16_t new_white_elo;
         uint16_t new_black_elo;
 
+        // Point system: Win +3, Lose -3
         if (!game->is_game_with_bot)
         {
             if (winner == player_white_name)
             {
-                new_white_elo = white_elo + 10;
-                new_black_elo = black_elo - 10;
+                new_white_elo = white_elo + 3;  // Win +3
+                new_black_elo = (black_elo >= 3) ? black_elo - 3 : 0;  // Lose -3
             }
             else if (winner == player_black_name)
             {
-                new_white_elo = white_elo - 10;
-                new_black_elo = black_elo + 10;
+                new_white_elo = (white_elo >= 3) ? white_elo - 3 : 0;  // Lose -3
+                new_black_elo = black_elo + 3;  // Win +3
             }
 
-            // Update ELOs
+            // Update points
             datastorage.updateUserELO(player_white_name, new_white_elo);
             datastorage.updateUserELO(player_black_name, new_black_elo);
         }

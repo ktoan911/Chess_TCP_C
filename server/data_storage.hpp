@@ -42,8 +42,11 @@ struct MatchModel
     std::string game_id;
     std::string white_username;
     std::string black_username;
+    std::string white_ip;  // IP address of white player
+    std::string black_ip;  // IP address of black player
     std::string start_fen;
     std::chrono::time_point<std::chrono::system_clock> start_time;
+    std::chrono::time_point<std::chrono::system_clock> end_time;
 
     struct Move
     {
@@ -61,8 +64,11 @@ struct MatchModel
         json j;
         j["white_username"] = white_username;
         j["black_username"] = black_username;
+        j["white_ip"] = white_ip;
+        j["black_ip"] = black_ip;
         j["start_fen"] = start_fen;
         j["start_time"] = start_time.time_since_epoch().count();
+        j["end_time"] = end_time.time_since_epoch().count();
 
         json moves_json;
         for (const auto &move : moves)
@@ -87,8 +93,11 @@ struct MatchModel
         game.game_id = game_id;
         game.white_username = j.at("white_username").get<std::string>();
         game.black_username = j.at("black_username").get<std::string>();
+        game.white_ip = j.value("white_ip", "");
+        game.black_ip = j.value("black_ip", "");
         game.start_fen = j.at("start_fen").get<std::string>();
         game.start_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::nanoseconds(j.at("start_time").get<int64_t>()));
+        game.end_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::nanoseconds(j.value("end_time", (int64_t)0)));
 
         for (const auto &move_json : j.at("moves"))
         {
@@ -214,6 +223,36 @@ public:
         return users;
     }
 
+    /**
+     * @brief Tính thứ hạng của user trong bảng xếp hạng.
+     * 
+     * @param username Tên người dùng cần tính rank.
+     * @return Thứ hạng (1 = cao nhất), 0 nếu không tìm thấy user.
+     */
+    int getUserRank(const std::string &username)
+    {
+        std::lock_guard<std::mutex> lock(users_mutex);
+        
+        auto it = users.find(username);
+        if (it == users.end())
+        {
+            return 0; // User không tồn tại
+        }
+        
+        uint16_t user_elo = it->second.elo;
+        int rank = 1;
+        
+        for (const auto &[name, user] : users)
+        {
+            if (user.elo > user_elo)
+            {
+                rank++;
+            }
+        }
+        
+        return rank;
+    }
+
 public:
     /**
      * @brief Đăng ký một trận đấu mới.
@@ -222,9 +261,11 @@ public:
      * @param white_username Tên người chơi cầm quân trắng.
      * @param black_username Tên người chơi cầm quân đen.
      * @param start_fen Vị trí FEN khởi đầu.
+     * @param white_ip IP của người chơi trắng.
+     * @param black_ip IP của người chơi đen.
      * @return true nếu đăng ký thành công, false nếu trận đấu đã tồn tại.
      */
-    bool registerMatch(const std::string &game_id, const std::string &white_username, const std::string &black_username, const std::string &start_fen)
+    bool registerMatch(const std::string &game_id, const std::string &white_username, const std::string &black_username, const std::string &start_fen, const std::string &white_ip = "", const std::string &black_ip = "")
     {
         std::lock_guard<std::mutex> lock(matches_mutex);
 
@@ -233,16 +274,19 @@ public:
             return false; // Trận đấu đã tồn tại
         }
 
-        matches[game_id] = MatchModel{
-            game_id,
-            white_username,
-            black_username,
-            start_fen,
-            std::chrono::system_clock::now(),
-            {}, // moves ban đầu là rỗng
-            "", // result ban đầu
-            ""  // reason ban đầu
-        };
+        MatchModel match;
+        match.game_id = game_id;
+        match.white_username = white_username;
+        match.black_username = black_username;
+        match.white_ip = white_ip;
+        match.black_ip = black_ip;
+        match.start_fen = start_fen;
+        match.start_time = std::chrono::system_clock::now();
+        match.end_time = std::chrono::time_point<std::chrono::system_clock>();  // Not ended yet
+        match.result = "";
+        match.reason = "";
+        
+        matches[game_id] = match;
 
         saveMatchesData();
         return true;
@@ -265,6 +309,7 @@ public:
         {
             it->second.result = result;
             it->second.reason = reason;
+            it->second.end_time = std::chrono::system_clock::now();  // Set end time
             saveMatchesData();
             return true;
         }

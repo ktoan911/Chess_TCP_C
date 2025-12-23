@@ -1,4 +1,14 @@
 {
+    "kkk": {
+        "elo": 1200,
+        "match_history": []
+    },
+    "linhngu": {
+        "elo": 1197,
+        "match_history": [
+            "game_linhngu_toan_20251224021247_20"
+        ]
+    },
     "minh": {
         "elo": 1200,
         "match_history": [
@@ -6,9 +16,10 @@
         ]
     },
     "toan": {
-        "elo": 1190,
+        "elo": 1193,
         "match_history": [
-            "game_toan_bot_20251117232717_325"
+            "game_toan_bot_20251117232717_325",
+            "game_linhngu_toan_20251224021247_20"
         ]
     },
     "viet1": {

@@ -256,31 +256,59 @@ private:
         NetworkServer &server = NetworkServer::getInstance();
         DataStorage &storage = DataStorage::getInstance();
 
-        std::cout << "[CHALLENGE_REQUEST] from: " << server.getUsername(client_fd)
-                  << ", to: " << message.to_username << std::endl;
+        std::string from_username = server.getUsername(client_fd);
+        std::string to_username = message.to_username;
 
-        bool is_opponent_online = server.isUserLoggedIn(message.to_username);
-        std::cout << "Opponent " << message.to_username << " online: " << is_opponent_online << std::endl;
+        std::cout << "[CHALLENGE_REQUEST] from: " << from_username
+                  << ", to: " << to_username << std::endl;
 
-        if (is_opponent_online)
+        // Check if opponent is online
+        bool is_opponent_online = server.isUserLoggedIn(to_username);
+        std::cout << "Opponent " << to_username << " online: " << is_opponent_online << std::endl;
+
+        if (!is_opponent_online)
         {
-            int to_client_fd = server.getClientFD(message.to_username);
-
-            // to complete
-            ChallengeNotificationMessage notification_msg;
-            notification_msg.from_username = server.getUsername(client_fd);
-            notification_msg.elo = storage.getUserELO(notification_msg.from_username);
-            std::vector<uint8_t> serialized = notification_msg.serialize();
-            server.sendPacket(to_client_fd, notification_msg.getType(), serialized);
-
-            std::cout << "[CHALLENGE_NOTIFICATION] Sent challenge from "
-                      << server.getUsername(client_fd)
-                      << " to " << message.to_username << std::endl;
+            // Opponent not online, send error
+            ChallengeErrorMessage error_msg;
+            error_msg.error_message = "Player " + to_username + " is not online.";
+            std::vector<uint8_t> serialized = error_msg.serialize();
+            server.sendPacket(client_fd, error_msg.getType(), serialized);
+            return;
         }
-        else
+
+        // Check rank difference - only allow challenging players within ±10 ranks
+        int from_rank = storage.getUserRank(from_username);
+        int to_rank = storage.getUserRank(to_username);
+        int rank_difference = abs(from_rank - to_rank);
+        
+        std::cout << "Rank check - From: " << from_username << " (rank " << from_rank 
+                  << "), To: " << to_username << " (rank " << to_rank 
+                  << "), Difference: " << rank_difference << std::endl;
+
+        if (rank_difference > 10)
         {
-            // to complete
+            // Rank difference too large, send error
+            ChallengeErrorMessage error_msg;
+            error_msg.error_message = "Cannot challenge " + to_username + ". Rank difference is " 
+                                      + std::to_string(rank_difference) + " (max allowed: 10).";
+            std::vector<uint8_t> serialized = error_msg.serialize();
+            server.sendPacket(client_fd, error_msg.getType(), serialized);
+            
+            std::cout << "[CHALLENGE_ERROR] Rank difference too large: " << rank_difference << std::endl;
+            return;
         }
+
+        // All checks passed, send challenge notification to opponent
+        int to_client_fd = server.getClientFD(to_username);
+
+        ChallengeNotificationMessage notification_msg;
+        notification_msg.from_username = from_username;
+        notification_msg.elo = storage.getUserELO(from_username);
+        std::vector<uint8_t> serialized = notification_msg.serialize();
+        server.sendPacket(to_client_fd, notification_msg.getType(), serialized);
+
+        std::cout << "[CHALLENGE_NOTIFICATION] Sent challenge from "
+                  << from_username << " to " << to_username << std::endl;
     }
 
     void handleChallengeResponse(int client_fd, const std::vector<uint8_t> &payload)

@@ -243,6 +243,39 @@ public:
         return -1;
     }
 
+    /**
+     * @brief Lấy địa chỉ IP của client.
+     *
+     * @param client_fd File descriptor của client.
+     * @return Địa chỉ IP dưới dạng chuỗi, hoặc rỗng nếu thất bại.
+     */
+    std::string getClientIP(int client_fd)
+    {
+        sockaddr_in addr;
+        socklen_t addr_len = sizeof(addr);
+        if (getpeername(client_fd, (struct sockaddr*)&addr, &addr_len) == 0)
+        {
+            return std::string(inet_ntoa(addr.sin_addr));
+        }
+        return "";
+    }
+
+    /**
+     * @brief Lấy địa chỉ IP của user theo username.
+     *
+     * @param username Tên người dùng.
+     * @return Địa chỉ IP dưới dạng chuỗi, hoặc rỗng nếu không tìm thấy.
+     */
+    std::string getClientIPByUsername(const std::string &username)
+    {
+        int client_fd = getClientFD(username);
+        if (client_fd != -1)
+        {
+            return getClientIP(client_fd);
+        }
+        return "";
+    }
+
     bool isUserLoggedIn(const std::string &username)
     {
         std::lock_guard<std::mutex> lock(clients_mutex);
