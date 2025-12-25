@@ -522,6 +522,18 @@ public:
         DataStorage &data_storage = DataStorage::getInstance();
         data_storage.updateMatchResult(game_id, winner, reason);
 
+        uint16_t white_elo = data_storage.getUserELO(player_white_name);
+        uint16_t black_elo = data_storage.getUserELO(player_black_name);
+        
+        if (winner == "<0>") {
+        } else if (winner == player_white_name) {
+            data_storage.updateUserELO(player_white_name, white_elo + 3);
+            data_storage.updateUserELO(player_black_name, (black_elo >= 3) ? black_elo - 3 : 0);
+        } else {
+            data_storage.updateUserELO(player_black_name, black_elo + 3);
+            data_storage.updateUserELO(player_white_name, (white_elo >= 3) ? white_elo - 3 : 0);
+        }
+
         // Prepare and send GameEndMessage to both players
         GameEndMessage game_end_msg;
         game_end_msg.game_id = game_id;
@@ -835,10 +847,17 @@ public:
         // Gọi hàm updateMatchResult để cập nhật kết quả trận đấu
         datastorage.updateMatchResult(game_id, winner, reason);
 
+        // Update ELO: surrendering player loses, opponent wins
         uint16_t white_elo = datastorage.getUserELO(player_white_name);
         uint16_t black_elo = datastorage.getUserELO(player_black_name);
-        uint16_t new_white_elo = white_elo;
-        uint16_t new_black_elo = black_elo;
+        
+        if (surrendering_player == player_white_name) {
+            datastorage.updateUserELO(player_white_name, (white_elo >= 3) ? white_elo - 3 : 0);
+            datastorage.updateUserELO(player_black_name, black_elo + 3);
+        } else {
+            datastorage.updateUserELO(player_black_name, (black_elo >= 3) ? black_elo - 3 : 0);
+            datastorage.updateUserELO(player_white_name, white_elo + 3);
+        }
 
         // Remove game
         removeGame(game_id);
