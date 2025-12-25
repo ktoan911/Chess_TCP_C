@@ -113,10 +113,8 @@ namespace UI
         std::cout << "\n========= Game menu =========" << std::endl;
         std::cout << "Chọn hành động: " << std::endl;
         std::cout << "  1. Ghép trận tự động" << std::endl;
-        std::cout << "  2. Chơi với máy" << std::endl;
-        std::cout << "  3. Danh sách người chơi trực tuyến" << std::endl;
-        std::cout << "  4. Lịch sử trận đấu" << std::endl;
-        std::cout << "  5. Trở về" << std::endl;
+        std::cout << "  2. Danh sách người chơi trực tuyến" << std::endl;
+        std::cout << "  3. Trở về" << std::endl;
 
         std::cout << "> " << std::flush;
         std::string result = InputHandler::waitForInput();
@@ -166,8 +164,7 @@ namespace UI
     {
         std::cout << "\n===== Lựa chọn =====" << std::endl;
         std::cout << "1. Thách đấu người chơi khác" << std::endl;
-        std::cout << "2. Xem người khác chơi" << std::endl;
-        std::cout << "3. Quay lại" << std::endl;
+        std::cout << "2. Quay lại" << std::endl;
 
         std::cout << "> " << std::flush;
         std::string result = InputHandler::waitForInput();
@@ -182,13 +179,8 @@ namespace UI
                 std::cout << "Nhập tên người chơi muốn thách đấu: " << std::flush;
                 decision.username = InputHandler::waitForInput();
                 break;
-            case 2:
-                decision.choice = 2;
-                std::cout << "Nhập tên người chơi mà bạn muốn theo dõi trận đấu: " << std::flush;
-                decision.username = InputHandler::waitForInput();
-                break;
             default:
-                decision.choice = 3;
+                decision.choice = 2;
                 break;
         }
         return decision;
@@ -203,24 +195,6 @@ namespace UI
 
         std::cout << "> " << std::flush;
         std::string result = InputHandler::waitForInput(10000);
-
-        return result;
-    }
-
-    std::string displayMatchHistoryDecision()
-    {
-        std::cout << "\n===== Lịch sử trận đấu =====" << std::endl;
-        std::cout << "1. Xem lại trận đấu" << std::endl;
-        std::cout << "2. Quay lại" << std::endl;
-
-        std::cout << "> " << std::flush;
-        std::string result = InputHandler::waitForInput();
-
-        if (result == "1")
-        {
-            std::cout << "Nhập ID trận đấu: " << std::flush;
-            result = InputHandler::waitForInput();
-        }
 
         return result;
     }

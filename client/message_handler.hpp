@@ -125,27 +125,9 @@ private:
             handleChallengeAccepted(packet.payload);
             break;
 
-        case MessageType::SPECTATE_SUCCESS:
-            // Handle spectate success
-            handleSpectateSuccess(packet.payload);
-            break;
-        case MessageType::SPECTATE_FAILURE:
-            // Handle spectate failure
-            handleSpectateFailure(packet.payload);
-            break;
-        case MessageType::SPECTATE_END:
-            // Handle spectate end
-            handleSpectateEnd(packet.payload);
-            break;
-        case MessageType::SPECTATE_MOVE:
-            // Handle spectate move
-            handleSpectateMove(packet.payload);
-            break;
 
-        case MessageType::MATCH_HISTORY:
-            // Handle match history
-            handleMatchHistory(packet.payload);
-            break;
+
+
 
         default:
             // Handle unknown message type
@@ -337,76 +319,6 @@ private:
         UI::printInfoMessage("Thách đấu đã được chấp nhận.");
     }
 
-    void handleSpectateSuccess(const std::vector<uint8_t> &payload)
-    {
-        NetworkClient &network_client = NetworkClient::getInstance();
-        SpectateSuccessMessage message = SpectateSuccessMessage::deserialize(payload);
-        std::string game_id = message.game_id;
-
-        UI::printInfoMessage("Bắt đầu quan sát trận đấu.");
-
-        std::cout << "Nhập Enter để kết thúc quan sát." << std::endl;
-
-        // Blocking
-        std::string input = InputHandler::waitForInput();
-
-        SpectateExitMessage spectate_exit_msg;
-        spectate_exit_msg.game_id = game_id;
-        network_client.sendPacket(spectate_exit_msg.getType(), spectate_exit_msg.serialize());
-
-        LogicHandler logic_handler;
-        logic_handler.handleGameMenu();
-    }
-
-    void handleSpectateFailure(const std::vector<uint8_t> &payload)
-    {
-        SpectateFailureMessage message = SpectateFailureMessage::deserialize(payload);
-
-        UI::printErrorMessage("Người chơi này hiện không trong trận đấu nào.");
-
-        LogicHandler logic_handler;
-        logic_handler.handleGameMenu();
-    }
-
-    void handleSpectateEnd(const std::vector<uint8_t> &payload)
-    {
-        LogicHandler logic_handler;
-
-        SpectateEndMessage message = SpectateEndMessage::deserialize(payload);
-
-        UI::printInfoMessage("Trận đấu bạn quan sát đã kết thúc.");
-
-        logic_handler.handleGameMenu();
-    }
-
-    void handleSpectateMove(const std::vector<uint8_t> &payload)
-    {
-        SpectateMoveMessage message = SpectateMoveMessage::deserialize(payload);
-
-        UI::showBoard(message.fen);
-        std::cout << "Tiếp theo sẽ đến lượt của: " << message.current_turn_username
-                  << " - " << ((message.is_white) ? "Trắng" : "Đen") << std::endl;
-        std::cout << "Nhập Enter để kết thúc quan sát." << std::endl;
-    }
-
-    void handleMatchHistory(const std::vector<uint8_t> &payload)
-    {
-        MatchHistoryMessage message = MatchHistoryMessage::deserialize(payload);
-
-        UI::printInfoMessage("Lịch sử trận đấu:");
-
-        for (const auto &match : message.matches)
-        {
-            std::cout << "Game_id: " << match.game_id << "\n"
-                      << "Opponent: " << match.opponent_username << "\n"
-                      << "Result: " << (match.won ? "Win" : "Lose") << "\n"
-                      << "Time: " << match.date << "\n"
-                      << "-------------------------------------------" << std::endl;
-        }
-
-        LogicHandler logic_handler;
-        logic_handler.handleMatchHistoryDecision();
-    }
 
 }; // namespace MessageHandler
 

@@ -51,13 +51,6 @@ public:
             // Handle auto match declined
             handleAutoMatchDeclined(client_fd, packet.payload);
             break;
-        
-        case MessageType::PLAY_WITH_BOT:
-            // Handle play with bot
-            handlePlayWithBot(client_fd, packet.payload);
-            break;
-
-            // Add additional cases for other MessageTypes
 
         case MessageType::REQUEST_PLAYER_LIST:
             // Handle request player list
@@ -74,24 +67,12 @@ public:
             handleChallengeResponse(client_fd, packet.payload);
             break;
 
-        case MessageType::REQUEST_SPECTATE:
-            // Handle request to spectate a game
-            handleRequestSpectate(client_fd, packet.payload);
-            break;
 
-        case MessageType::SPECTATE_EXIT:
-            // Handle spectator exit
-            handleSpectateExit(client_fd, packet.payload);
-            break;
 
         case MessageType::SURRENDER:
             handleSurrender(client_fd, packet.payload);
             break;
 
-        case MessageType::REQUEST_MATCH_HISTORY:
-            // Handle request match history
-            handleRequestMatchHistory(client_fd, packet.payload);
-            break;
 
         default:
             // Handle unknown message type
@@ -368,80 +349,6 @@ private:
         }
     }
 
-    void handlePlayWithBot(int client_fd, const std::vector<uint8_t> &payload)
-    {
-        PlayWithBotMessage message = PlayWithBotMessage::deserialize(payload);
-        NetworkServer &network_server = NetworkServer::getInstance();
-        GameManager &gameManager = GameManager::getInstance();
-
-        std::string username = network_server.getUsername(client_fd);
-
-        std::cout << "[PLAY_WITH_BOT] from: " << username << std::endl;
-
-        std::string game_id = gameManager.createGameWithBot(username);
-
-        // Notify the player about the game start
-        GameStartMessage game_start_msg;
-        game_start_msg.game_id = game_id;
-        game_start_msg.player1_username = username;
-        game_start_msg.player2_username = "Bot";
-        game_start_msg.starting_player_username = username; // Player 1 starts
-        game_start_msg.fen = chess::constants::STARTPOS;
-
-        std::vector<uint8_t> serialized = game_start_msg.serialize();
-        network_server.sendPacket(client_fd, MessageType::GAME_START, serialized);
-
-        std::cout << "Game " << game_id << " started." << std::endl;
-    }
-
-    void handleRequestSpectate(int client_fd, const std::vector<uint8_t> &payload)
-    {
-        RequestSpectateMessage message = RequestSpectateMessage::deserialize(payload);
-        NetworkServer &network_server = NetworkServer::getInstance();
-        GameManager &gameManager = GameManager::getInstance();
-
-        std::string playing_username = message.username;
-        std::string requester_username = network_server.getUsername(client_fd);
-
-        bool is_playing = gameManager.isUserInGame(playing_username);
-
-        std::cout << "[REQUEST_SPECTATE] from: " << requester_username << ", to watch: " << playing_username << std::endl;
-
-        if (is_playing)
-        {
-            std::string game_id = gameManager.getUserGameId(playing_username);
-
-            gameManager.addSpectator(game_id, client_fd);
-
-            SpectateSuccessMessage spectate_success_msg;
-            spectate_success_msg.game_id = game_id;
-            network_server.sendPacket(client_fd, spectate_success_msg.getType(), spectate_success_msg.serialize());
-
-            std::cout << "Spectate success message sent to " << requester_username << std::endl;
-        }
-        else
-        {
-            // Notify the requester that the player is not in a game
-            SpectateFailureMessage spectate_failure_msg;
-            network_server.sendPacket(client_fd, spectate_failure_msg.getType(), spectate_failure_msg.serialize());
-
-            std::cout << "Spectate failure message sent to " << requester_username << std::endl;
-        }
-    }
-
-    void handleSpectateExit(int client_fd, const std::vector<uint8_t> &payload)
-    {
-        SpectateExitMessage message = SpectateExitMessage::deserialize(payload);
-        NetworkServer &network_server = NetworkServer::getInstance();
-        GameManager &gameManager = GameManager::getInstance();
-
-        std::string game_id = message.game_id;
-        std::string username = network_server.getUsername(client_fd);
-
-        gameManager.removeSpectator(game_id, client_fd);
-
-        std::cout << "[SPECTATE_EXIT] " << username << " exited spectating game " << game_id << std::endl;
-    }
     
     void handleSurrender(int client_fd, const std::vector<uint8_t> &payload)
     {
@@ -476,34 +383,6 @@ private:
         server.sendPacket(client_fd, end_message.getType(), serialized); // Người đầu hàng
         int opponent_fd = server.getClientFD(opponent_username);
         server.sendPacket(opponent_fd, end_message.getType(), serialized); // Đối thủ
-    }
-
-    void handleRequestMatchHistory(int client_fd, const std::vector<uint8_t> &payload)
-    {
-        RequestMatchHistoryMessage message = RequestMatchHistoryMessage::deserialize(payload);
-        NetworkServer &server = NetworkServer::getInstance();
-        DataStorage &storage = DataStorage::getInstance();
-
-        std::string username = server.getUsername(client_fd);
-
-        std::cout << "[REQUEST_MATCH_HISTORY] from " << username << std::endl;
-
-        std::vector<MatchModel> matches = storage.getMatchHistory(username);
-
-        // Cast the matches to MatchHistoryMessage
-        MatchHistoryMessage response;
-        for (const MatchModel &match : matches)
-        {
-            MatchHistoryMessage::Match match_history;
-            match_history.game_id = match.game_id;
-            match_history.opponent_username = username == match.white_username ? match.black_username : match.white_username;
-            match_history.won = match.result == username;
-            match_history.date = match.start_time.time_since_epoch().count();
-
-            response.matches.push_back(match_history);
-        }
-
-        server.sendPacket(client_fd, response.getType(), response.serialize());
     }
 };
 

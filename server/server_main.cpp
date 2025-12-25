@@ -57,7 +57,6 @@ void handleClient(int client_fd)
             std::cout << "Client " << client_fd << " ngắt kết nối." << std::endl;
             GameManager &game_manager = GameManager::getInstance();
             game_manager.clientDisconnected(client_fd);
-            game_manager.removeSpectatorFromAllGames(client_fd);
 
             network_server.closeConnection(client_fd);
             break;

@@ -154,20 +154,6 @@ public:
             }
             else if (choice == 2)
             {
-                // Chơi với máy
-                PlayWithBotMessage play_with_bot_msg;
-                play_with_bot_msg.username = session_data.getUsername();
-
-                if (!network_client.sendPacket(play_with_bot_msg.getType(), play_with_bot_msg.serialize()))
-                {
-                    UI::printErrorMessage("Gửi yêu cầu chơi với máy thất bại.");
-                }
-
-                UI::printInfoMessage("Đang chơi với máy...");
-                break;
-            }
-            else if (choice == 3)
-            {
                 // Xem danh sách người chơi trực tuyến
                 RequestPlayerListMessage request_player_list_msg;
                 if (!network_client.sendPacket(request_player_list_msg.getType(), request_player_list_msg.serialize()))
@@ -178,19 +164,7 @@ public:
                 UI::printInfoMessage("Danh sách người chơi trực tuyến:");
                 break;
             }
-            else if (choice == 4)
-            {
-                // Xem lịch sử trận đấu
-                RequestMatchHistoryMessage request_match_history_msg;
-
-                if (!network_client.sendPacket(request_match_history_msg.getType(), request_match_history_msg.serialize()))
-                {
-                    UI::printErrorMessage("Tải lịch sử trận đấu thất bại.");
-                    break;
-                }
-                break;
-            }
-            else if (choice == 5)
+            else if (choice == 3)
             {
                 handleInitialMenu();
                 break;
@@ -378,8 +352,7 @@ public:
 
         /* Ask the user to choose an option
          * 1. Challenge a player
-         * 2. Watch a player playing an ongoing match
-         * 3. Go back
+         * 2. Go back
          */
         UI::PlayerListDecision decision = UI::displayPlayerListOption();
 
@@ -388,7 +361,6 @@ public:
         bool userOnline = false;
 
         ChallengeRequestMessage challenge_request_msg;
-        RequestSpectateMessage request_spectate_msg;
 
         switch (decision.choice)
         {
@@ -445,51 +417,7 @@ public:
                 handleGameMenu();
             }
             break;
-        case 2: /*Xem người chơi khác chơi*/
-            // Kiểm tra xem có định xem chính mình chơi không
-            if (decision.username == session_data.getUsername())
-            {
-                UI::printErrorMessage("Không thể xem chính mình chơi.");
-                handleGameMenu();
-                return;
-            }
-            // Kiểm tra người chơi có online không
-            for (const auto &player : players)
-            {
-                if (player.username == decision.username)
-                {
-                    if (!player.in_game)
-                    {
-                        UI::printErrorMessage("Người chơi này hiện không trong trận đấu nào.");
-                        handleGameMenu();
-                        return;
-                    }
-                    userOnline = true;
-                    break;
-                }
-            }
-
-            if (!userOnline)
-            {
-                UI::printErrorMessage("Người chơi không online hoặc không tồn tại.");
-                handleGameMenu();
-                return;
-            }
-
-            request_spectate_msg.username = decision.username;
-            if (!network_client.sendPacket(request_spectate_msg.getType(), request_spectate_msg.serialize()))
-            {
-                UI::printErrorMessage("Gửi yêu cầu xem trận thất bại.");
-                handleGameMenu();
-            }
-            else
-            {
-                UI::printInfoMessage("Đã gửi yêu cầu xem trận.");
-            }
-            break;
-        case 3:
-            handleGameMenu();
-            break;
+        case 2:
         default:
             handleGameMenu();
             break;
@@ -577,42 +505,6 @@ public:
                 break;
             }
         }
-    }
-
-    void handleMatchHistoryDecision()
-    {
-        std::string result = UI::displayMatchHistoryDecision();
-
-        // if the input was cancelled
-        if (SessionData::getInstance().shouldStop())
-        {
-            // std::cout << "shouldStop..." << std::endl;
-            return;
-        }
-
-        if (result == "2")
-        {
-            handleGameMenu();
-            return;
-        }
-
-        // Xem lại trận đấu
-        std::string game_id = result;
-
-        // RequestMatchDataMessage request_match_data_msg;
-        // request_match_data_msg.game_id = game_id;
-
-        // NetworkClient &network_client = NetworkClient::getInstance();
-
-        // if (!network_client.sendPacket(request_match_data_msg.getType(), request_match_data_msg.serialize()))
-        // {
-        //     UI::printErrorMessage("Gửi yêu cầu xem lại trận đấu thất bại.");
-        //     handleGameMenu();
-        // }
-        // else
-        // {
-        //     UI::printInfoMessage("Đã gửi yêu cầu xem lại trận đấu.");
-        // }
     }
 
 private:

@@ -1,8 +1,6 @@
 {
     "game_linhngu_toan_20251224021247_20": {
-        "black_ip": "127.0.0.1",
         "black_username": "toan",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -19,13 +17,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1766517167020669902,
-        "white_ip": "127.0.0.1",
         "white_username": "linhngu"
     },
     "game_minh_viet2_20241216092830_691": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -47,13 +42,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9842109457888,
-        "white_ip": "",
         "white_username": "minh"
     },
     "game_toan_bot_20251117232717_325": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -70,13 +62,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1763396837325248717,
-        "white_ip": "",
         "white_username": "toan"
     },
     "game_viet1_bot_20241216211212_86": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -103,13 +92,10 @@
         "result": "bot",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 32192082478701,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_bot_20241216212050_963": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -196,13 +182,10 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 32710958665981,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241209130003_435": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -229,13 +212,10 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 12098452302911,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241210210047_169": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -257,61 +237,46 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 7661491242116,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241210215828_49": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 8484275591406,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241210220116_510": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 8667370109771,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214163025_208": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9805568826746,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214163058_435": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9839268562377,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214163415_996": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -323,25 +288,19 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 10039887300031,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214170355_622": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 11846757726421,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214181600_522": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -358,13 +317,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 14532616406378,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214181811_321": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -376,13 +332,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 14663415117365,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214181939_610": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -394,61 +347,46 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 14751703619123,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214182257_288": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 14949382583479,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214192603_269": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 15743453391190,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214192715_129": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 15815313148246,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214193455_781": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 16275965618785,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214193527_285": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -465,13 +403,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 16307469201052,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214194404_395": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -483,25 +418,19 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 16824578516567,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214194910_696": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 17130879611237,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214194945_214": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -513,25 +442,19 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 17165397729652,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214195223_580": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 17323763941396,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214195255_132": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -543,37 +466,28 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 17355315543025,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214200500_816": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18080999161818,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214200601_751": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18141934252113,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214201040_963": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -590,13 +504,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18421147638205,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214201227_449": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -608,37 +519,28 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18527632138280,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214201524_991": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18705175231735,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214201700_141": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18800325121442,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214201923_637": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -650,13 +552,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 18943820360318,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214203111_813": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -668,13 +567,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 19651996398208,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214204506_496": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -686,13 +582,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 20486682681336,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214205456_658": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -704,25 +597,19 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 21076841913442,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214205659_55": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 21199238293451,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241214205728_280": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -734,13 +621,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 21228463297902,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241216092734_824": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -757,13 +641,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9783368451550,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241216102636_25": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -775,13 +656,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9160540879998,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241216103353_26": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -793,13 +671,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9597540875746,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241216111334_403": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -811,13 +686,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 11978918179280,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet1_viet2_20241216190223_685": {
-        "black_ip": "",
         "black_username": "viet2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -829,13 +701,10 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 24403681388381,
-        "white_ip": "",
         "white_username": "viet1"
     },
     "game_viet2_bot_20241216213606_735": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -852,13 +721,10 @@
         "result": "bot",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 33626731235836,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_viet2_viet1_20241209124943_803": {
-        "black_ip": "",
         "black_username": "viet1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -885,13 +751,10 @@
         "result": "viet2",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 8947497845233,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_viet2_viet1_20241209131103_134": {
-        "black_ip": "",
         "black_username": "viet1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -918,13 +781,10 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 12758186699760,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_viet2_viet1_20241216074358_360": {
-        "black_ip": "",
         "black_username": "viet1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -951,13 +811,10 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 3199827605348,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_viet2_viet1_20241216111133_855": {
-        "black_ip": "",
         "black_username": "viet1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -984,25 +841,19 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 11858370521713,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_viet2_viet1_20241216215629_215": {
-        "black_ip": "",
         "black_username": "viet1",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 34849211495039,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_viet2_viet1_20241216215907_700": {
-        "black_ip": "",
         "black_username": "viet1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -1029,13 +880,10 @@
         "result": "viet1",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 35007696412590,
-        "white_ip": "",
         "white_username": "viet2"
     },
     "game_vu1_bot_20241217121859_787": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -1052,13 +900,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1734412739798271542,
-        "white_ip": "",
         "white_username": "vu1"
     },
     "game_vu1_bot_20241227190528_767": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -1075,13 +920,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1735301128767118035,
-        "white_ip": "",
         "white_username": "vu1"
     },
     "game_vu1_vu2_20241216103410_539": {
-        "black_ip": "",
         "black_username": "vu2",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -1093,25 +935,19 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 9615054360378,
-        "white_ip": "",
         "white_username": "vu1"
     },
     "game_vu1_vu2_20241227190200_189": {
-        "black_ip": "",
         "black_username": "vu2",
-        "end_time": 0,
         "moves": null,
         "reason": "Player surrendered",
         "result": "vu2",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1735300920190853688,
-        "white_ip": "",
         "white_username": "vu1"
     },
     "game_vu2_bot_20241227190911_858": {
-        "black_ip": "",
         "black_username": "bot",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/5P2/8/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -1128,25 +964,19 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1735301351858278393,
-        "white_ip": "",
         "white_username": "vu2"
     },
     "game_vu2_vu1_20241216081601_224": {
-        "black_ip": "",
         "black_username": "vu1",
-        "end_time": 0,
         "moves": null,
         "reason": "",
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 5122691847318,
-        "white_ip": "",
         "white_username": "vu2"
     },
     "game_vu2_vu1_20241216095307_963": {
-        "black_ip": "",
         "black_username": "vu1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/8/5P2/PPPPP1PP/RNBQKBNR b KQkq - 0 1",
@@ -1158,13 +988,10 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 7313056415112,
-        "white_ip": "",
         "white_username": "vu2"
     },
     "game_vu2_vu1_20241230235938_706": {
-        "black_ip": "",
         "black_username": "vu1",
-        "end_time": 0,
         "moves": [
             {
                 "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
@@ -1176,7 +1003,171 @@
         "result": "",
         "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
         "start_time": 1735577978708924238,
-        "white_ip": "",
+        "white_username": "vu2"
+    },
+    "game_vu2_vu1_20251225075759_823": {
+        "black_username": "vu1",
+        "moves": [
+            {
+                "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                "move_time": 1766624292858439890,
+                "uci_move": "e2e4"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                "move_time": 1766624326334501415,
+                "uci_move": "d7d5"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1pppp/8/3pP3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2",
+                "move_time": 1766624336008339717,
+                "uci_move": "e4e5"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1p1pp/5p2/3pP3/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 3",
+                "move_time": 1766624353071021003,
+                "uci_move": "f7f6"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1p1pp/5P2/3p4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 3",
+                "move_time": 1766624367648782939,
+                "uci_move": "e5f6"
+            },
+            {
+                "fen": "rnbqkbnr/ppp3pp/4pP2/3p4/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 4",
+                "move_time": 1766624378434183142,
+                "uci_move": "e7e6"
+            }
+        ],
+        "reason": "",
+        "result": "",
+        "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "start_time": 1766624279823875073,
+        "white_username": "vu2"
+    },
+    "game_vu2_vu1_20251225172720_918": {
+        "black_username": "vu1",
+        "moves": [
+            {
+                "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                "move_time": 1766658454166446386,
+                "uci_move": "e2e4"
+            }
+        ],
+        "reason": "",
+        "result": "",
+        "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "start_time": 1766658440919144830,
+        "white_username": "vu2"
+    },
+    "game_vu2_vu1_20251225175258_596": {
+        "black_username": "vu1",
+        "moves": [
+            {
+                "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                "move_time": 1766660816543558952,
+                "uci_move": "e2e4"
+            }
+        ],
+        "reason": "",
+        "result": "",
+        "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "start_time": 1766659978596542682,
+        "white_username": "vu2"
+    },
+    "game_vu2_vu1_20251225184843_338": {
+        "black_username": "vu1",
+        "moves": [
+            {
+                "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                "move_time": 1766663332508747118,
+                "uci_move": "e2e4"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                "move_time": 1766663350584954772,
+                "uci_move": "d7d5"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2",
+                "move_time": 1766663360682364773,
+                "uci_move": "e4d5"
+            }
+        ],
+        "reason": "",
+        "result": "",
+        "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "start_time": 1766663323338443244,
+        "white_username": "vu2"
+    },
+    "game_vu2_vu1_20251225215310_228": {
+        "black_username": "vu1",
+        "moves": [
+            {
+                "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+                "move_time": 1766674401510522151,
+                "uci_move": "e2e4"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+                "move_time": 1766674410976651500,
+                "uci_move": "d7d5"
+            },
+            {
+                "fen": "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2",
+                "move_time": 1766674420779470426,
+                "uci_move": "e4d5"
+            },
+            {
+                "fen": "rnbqkbnr/ppp2ppp/4p3/3P4/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 3",
+                "move_time": 1766674437310463030,
+                "uci_move": "e7e6"
+            },
+            {
+                "fen": "rnbqkbnr/ppp2ppp/3Pp3/8/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 3",
+                "move_time": 1766674444868991354,
+                "uci_move": "d5d6"
+            },
+            {
+                "fen": "rnbqkbnr/ppp2ppp/3P4/4p3/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 4",
+                "move_time": 1766674453658613622,
+                "uci_move": "e6e5"
+            },
+            {
+                "fen": "rnbqkbnr/pppP1ppp/8/4p3/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 4",
+                "move_time": 1766674462363268933,
+                "uci_move": "d6d7"
+            },
+            {
+                "fen": "rnbq1bnr/pppPkppp/8/4p3/8/8/PPPP1PPP/RNBQKBNR w KQ - 1 5",
+                "move_time": 1766674502043026208,
+                "uci_move": "e8e7"
+            },
+            {
+                "fen": "rnbq1bnr/pppPkppp/8/4p3/6Q1/8/PPPP1PPP/RNB1KBNR b KQ - 2 5",
+                "move_time": 1766674539249455837,
+                "uci_move": "d1g4"
+            },
+            {
+                "fen": "rnbq1bnr/pppPk1pp/5p2/4p3/6Q1/8/PPPP1PPP/RNB1KBNR w KQ - 0 6",
+                "move_time": 1766674559467421878,
+                "uci_move": "f7f6"
+            },
+            {
+                "fen": "rnbq1bnr/pppPk1pp/4Qp2/4p3/8/8/PPPP1PPP/RNB1KBNR b KQ - 1 6",
+                "move_time": 1766674574874179461,
+                "uci_move": "g4e6"
+            },
+            {
+                "fen": "rnbq1bnr/pppP2pp/4kp2/4p3/8/8/PPPP1PPP/RNB1KBNR w KQ - 0 7",
+                "move_time": 1766674650487239231,
+                "uci_move": "e7e6"
+            }
+        ],
+        "reason": "",
+        "result": "",
+        "start_fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "start_time": 1766674390229220699,
         "white_username": "vu2"
     }
 }

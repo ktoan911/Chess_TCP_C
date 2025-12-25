@@ -239,48 +239,6 @@ void test_challenge_response_message() {
               << std::endl;
 }
 
-void test_request_spectate_message() {
-    // Arrange
-    RequestSpectateMessage original_message;
-    original_message.username = "spectate_user";
-
-    // Act
-    std::vector<uint8_t> serialized = original_message.serialize();
-    RequestSpectateMessage deserialized_message = RequestSpectateMessage::deserialize(serialized);
-
-    // Assert
-    std::cout << "RequestSpectateMessage Test: " 
-              << (original_message.username == deserialized_message.username ? "Passed" : "Failed") 
-              << std::endl;
-}
-
-void test_spectate_success_message() {
-    // Arrange
-    SpectateSuccessMessage original_message;
-
-    // Act
-    std::vector<uint8_t> serialized = original_message.serialize();
-    SpectateSuccessMessage deserialized_message = SpectateSuccessMessage::deserialize(serialized);
-
-    // Assert
-    std::cout << "SpectateSuccessMessage Test: " 
-              << (serialized.empty() ? "Passed" : "Failed") 
-              << std::endl;
-}
-
-void test_spectate_failure_message() {
-    // Arrange
-    SpectateFailureMessage original_message;
-
-    // Act
-    std::vector<uint8_t> serialized = original_message.serialize();
-    SpectateFailureMessage deserialized_message = SpectateFailureMessage::deserialize(serialized);
-
-    // Assert
-    std::cout << "SpectateFailureMessage Test: " 
-              << (serialized.empty() ? "Passed" : "Failed") 
-              << std::endl;
-}
 
 int main() {
     // test_register_message();
@@ -298,8 +256,5 @@ int main() {
 
      //test_player_list_message();
     // test_challenge_response_message();
-    test_request_spectate_message();
-    test_spectate_success_message();
-    test_spectate_failure_message();
     return 0;
 }

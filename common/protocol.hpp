@@ -28,10 +28,6 @@ enum class MessageType : uint8_t
     REQUEST_PLAYER_LIST = 0x30,
     PLAYER_LIST = 0x31,
 
-    // Match History
-    REQUEST_MATCH_HISTORY = 0x32,
-    MATCH_HISTORY = 0x33,
-
     // Game
     GAME_START = 0x40,
     MOVE = 0x41,
@@ -46,23 +42,14 @@ enum class MessageType : uint8_t
     CHALLENGE_RESPONSE = 0x52,
     CHALLENGE_ACCEPTED = 0x53,
     CHALLENGE_DECLINED = 0x54,
+    
     // Auto match
     AUTO_MATCH_REQUEST = 0x55,
     AUTO_MATCH_FOUND = 0x56,
     AUTO_MATCH_ACCEPTED = 0x57,
     AUTO_MATCH_DECLINED = 0x58,
     MATCH_DECLINED_NOTIFICATION = 0x59,
-    // Play with bot
-    PLAY_WITH_BOT = 0x5A,
-
-    // Spectate
-    REQUEST_SPECTATE = 0x60,
-    SPECTATE_SUCCESS = 0x61,
-    SPECTATE_FAILURE = 0x62,
-    SPECTATE_MOVE = 0x63,
-    SPECTATE_END = 0x64,
-    SPECTATE_EXIT = 0x65,
-
+    
     // Additional
     CHALLENGE_ERROR = 0x5B,
     GAME_LOG = 0x46

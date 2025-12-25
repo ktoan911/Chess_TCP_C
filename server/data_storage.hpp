@@ -18,21 +18,18 @@ struct UserModel
 {
     std::string username;
     uint16_t elo;
-    std::vector<std::string> match_history;
 
     json serialize() const
     {
         return {
-            {"elo", elo},
-            {"match_history", match_history}};
+            {"elo", elo}};
     }
 
     static UserModel deserialize(const std::string &username, const json &j)
     {
         return UserModel{
             username,
-            j.at("elo").get<uint16_t>(),
-            j.value("match_history", std::vector<std::string>{}) // Sử dụng giá trị mặc định
+            j.at("elo").get<uint16_t>()
         };
     }
 };
@@ -155,8 +152,7 @@ public:
 
         users[username] = UserModel{
             username,
-            elo,
-            {} // match_history ban đầu là rỗng;
+            elo
         };
 
         saveUsersData();
@@ -197,20 +193,6 @@ public:
         if (it != users.end())
         {
             it->second.elo = elo;
-            saveUsersData();
-            return true;
-        }
-        return false;
-    }
-
-    bool addMatchToUserHistory(const std::string &username, const std::string &game_id)
-    {
-        std::lock_guard<std::mutex> lock(users_mutex);
-
-        auto it = users.find(username);
-        if (it != users.end())
-        {
-            it->second.match_history.push_back(game_id);
             saveUsersData();
             return true;
         }
@@ -359,26 +341,6 @@ public:
         return false;
     }
 
-    /**
-     * @brief Lấy lịch sử trận đấu của một người chơi.
-     *
-     * @param username Tên người chơi cần lấy lịch sử.
-     * @return std::vector<MatchModel> chứa lịch sử trận đấu của người chơi.
-     */
-    std::vector<MatchModel> getMatchHistory(const std::string &username)
-    {
-        std::lock_guard<std::mutex> lock(matches_mutex);
-
-        std::vector<MatchModel> match_history;
-        for (const auto &[game_id, match] : matches)
-        {
-            if (match.white_username == username || match.black_username == username)
-            {
-                match_history.push_back(match);
-            }
-        }
-        return match_history;
-    }
 
 private:
     std::unordered_map<std::string, UserModel> users; // mapping username -> User
