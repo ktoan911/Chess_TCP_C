@@ -237,13 +237,13 @@ private:
      *
      * - Nếu nhận được tín hiệu dừng, dừng vòng lặp.
      *
-     * - Khi có đủ hai người chơi, lấy hai người từ hàng đợi và kiểm tra sự khác biệt ELO.
+     * - Khi có đủ hai người chơi:
+     *   1. Lấy người chơi đầu tiên ra khỏi hàng đợi.
+     *   2. Duyệt toàn bộ hàng đợi để tìm đối thủ có ELO phù hợp.
+     *   3. Nếu tìm thấy, tạo trận đấu mới và gửi thông báo cho cả hai người chơi.
+     *   4. Nếu không tìm thấy, đưa người chơi đầu tiên vào cuối hàng đợi.
      *
-     *   - 1. Nếu sự khác biệt ELO nhỏ hơn hoặc bằng ngưỡng cho phép, tạo trận đấu mới và gửi thông báo cho cả hai người chơi.
-     *
-     *   - 2. Nếu không, đưa lại hai người chơi vào hàng đợi.
-     *
-     * - Sleep 1 giây trước khi lặp lại vòng lặp.
+     * - Unlock mutex trước khi sleep để không block các thread khác.
      *
      * @note Hàm này chạy trong một luồng riêng và sử dụng mutex cùng điều kiện biến để quản lý truy cập vào hàng đợi tìm kiếm.
      */
@@ -256,9 +256,10 @@ private:
             cv.wait(lock, [this]
                     { return matchmaking_queue.size() >= 2 || stop_matching; });
 
+            count++; 
             if (count % 10 == 0)
             {
-                std::cout << "\nMatchmaking loop " << count++
+                std::cout << "\nMatchmaking loop " << count
                           << ", queue size: " << matchmaking_queue.size() << std::endl;
             }
 
@@ -270,33 +271,94 @@ private:
 
             if (matchmaking_queue.size() >= 2)
             {
+                // Pop the first player from queue
                 int client1_fd = matchmaking_queue.front();
-                matchmaking_queue.pop();
-                int client2_fd = matchmaking_queue.front();
                 matchmaking_queue.pop();
 
                 NetworkServer &network_server = NetworkServer::getInstance();
                 DataStorage &data_storage = DataStorage::getInstance();
 
-                // Retrieve usernames and ELOs
-                std::string username1 = network_server.getUsername(client1_fd);
-                std::string username2 = network_server.getUsername(client2_fd);
-
-                uint16_t elo1 = data_storage.getUserELO(username1);
-                uint16_t elo2 = data_storage.getUserELO(username2);
-
-                if (abs(static_cast<int>(elo1) - static_cast<int>(elo2)) <= Const::ELO_THRESHOLD)
+                // Check if client1 is still connected
+                if (!network_server.isClientConnected(client1_fd))
                 {
-                    // Create new game
-                    std::string game_id = createGame(username1, username2);
+                    // Client disconnected, skip and continue
+                    lock.unlock();
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                    continue;
+                }
+
+                std::string username1 = network_server.getUsername(client1_fd);
+                uint16_t elo1 = data_storage.getUserELO(username1);
+
+                // Search through entire queue for a matching opponent
+                int matched_client_fd = -1;
+                std::string matched_username;
+                uint16_t matched_elo = 0;
+                size_t queue_size = matchmaking_queue.size();
+                std::queue<int> temp_queue;
+
+                for (size_t i = 0; i < queue_size; i++)
+                {
+                    int candidate_fd = matchmaking_queue.front();
+                    matchmaking_queue.pop();
+
+                    // Check if candidate is still connected
+                    if (!network_server.isClientConnected(candidate_fd))
+                    {
+                        // Skip disconnected clients
+                        continue;
+                    }
+
+                    if (matched_client_fd == -1)
+                    {
+                        std::string candidate_username = network_server.getUsername(candidate_fd);
+                        uint16_t candidate_elo = data_storage.getUserELO(candidate_username);
+
+                        if (abs(static_cast<int>(elo1) - static_cast<int>(candidate_elo)) <= Const::ELO_THRESHOLD)
+                        {
+                            // Found a match!
+                            matched_client_fd = candidate_fd;
+                            matched_username = candidate_username;
+                            matched_elo = candidate_elo;
+                        }
+                        else
+                        {
+                            // ELO not matching, keep in temp queue
+                            temp_queue.push(candidate_fd);
+                        }
+                    }
+                    else
+                    {
+                        // Already found a match, keep remaining in temp queue
+                        temp_queue.push(candidate_fd);
+                    }
+                }
+
+                // Restore temp_queue back to matchmaking_queue
+                while (!temp_queue.empty())
+                {
+                    matchmaking_queue.push(temp_queue.front());
+                    temp_queue.pop();
+                }
+
+                if (matched_client_fd != -1)
+                {
+                    // Found a match, create game
+                    std::string game_id = createGame(username1, matched_username);
 
                     // Add to pending_games
-                    pending_games[game_id] = PendingGame(game_id, client1_fd, client2_fd);
+                    {
+                        std::lock_guard<std::mutex> games_lock(games_mutex);
+                        pending_games[game_id] = PendingGame(game_id, client1_fd, matched_client_fd);
+                    }
+
+                    // Unlock before sending packets (network I/O)
+                    lock.unlock();
 
                     // Send AutoMatchFoundMessage to both clients
                     AutoMatchFoundMessage auto_match_found_msg_1;
-                    auto_match_found_msg_1.opponent_username = username2;
-                    auto_match_found_msg_1.opponent_elo = elo2;
+                    auto_match_found_msg_1.opponent_username = matched_username;
+                    auto_match_found_msg_1.opponent_elo = matched_elo;
                     auto_match_found_msg_1.game_id = game_id;
                     std::vector<uint8_t> serialized_1 = auto_match_found_msg_1.serialize();
                     network_server.sendPacket(client1_fd, MessageType::AUTO_MATCH_FOUND, serialized_1);
@@ -306,14 +368,18 @@ private:
                     auto_match_found_msg_2.opponent_elo = elo1;
                     auto_match_found_msg_2.game_id = game_id;
                     std::vector<uint8_t> serialized_2 = auto_match_found_msg_2.serialize();
-                    network_server.sendPacket(client2_fd, MessageType::AUTO_MATCH_FOUND, serialized_2);
+                    network_server.sendPacket(matched_client_fd, MessageType::AUTO_MATCH_FOUND, serialized_2);
                 }
                 else
                 {
-                    // ELO difference too high, re-add to queue
+                    // No matching opponent found, push client1 back to end of queue
                     matchmaking_queue.push(client1_fd);
-                    matchmaking_queue.push(client2_fd);
+                    lock.unlock();
                 }
+            }
+            else
+            {
+                lock.unlock();
             }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(1000));

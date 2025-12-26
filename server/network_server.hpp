@@ -289,6 +289,18 @@ public:
         return false;
     }
 
+    /**
+     * @brief Kiểm tra xem client có còn kết nối không.
+     *
+     * @param client_fd File descriptor của client.
+     * @return true nếu client còn kết nối, false nếu không.
+     */
+    bool isClientConnected(int client_fd)
+    {
+        std::lock_guard<std::mutex> lock(clients_mutex);
+        return clients.find(client_fd) != clients.end();
+    }
+
     void closeConnection(int client_fd)
     {
         close(client_fd);
