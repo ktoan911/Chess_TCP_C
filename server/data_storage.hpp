@@ -12,19 +12,33 @@
 #include "../common/json_handler.hpp"
 #include "../common/const.hpp"
 
-using json = nlohmann::json;
+// Sử dụng thư viện nlohmann/json để xử lý dữ liệu định dạng JSON
+using json = nlohmann::json; // alias
 
+/**
+ * @brief Cấu trúc dữ liệu đại diện cho một người dùng (User).
+ */
 struct UserModel
 {
-    std::string username;
-    uint16_t elo;
+    std::string username; // Tên đăng nhập của người dùng
+    uint16_t elo;        // Điểm số (ELO) của người dùng
 
+    /**
+     * @brief Chuyển đổi đối tượng UserModel sang định dạng JSON để lưu trữ.
+     * @return Đối tượng json chứa thông tin elo.
+     */
     json serialize() const
     {
         return {
             {"elo", elo}};
     }
 
+    /**
+     * @brief Chuyển đổi từ dữ liệu JSON và username thành đối tượng UserModel.
+     * @param username Tên người dùng.
+     * @param j Đối tượng json chứa dữ liệu elo.
+     * @return Đối tượng UserModel hoàn chỉnh.
+     */
     static UserModel deserialize(const std::string &username, const json &j)
     {
         return UserModel{
@@ -34,28 +48,39 @@ struct UserModel
     }
 };
 
+/**
+ * @brief Cấu trúc dữ liệu đại diện cho một trận đấu (Match).
+ */
 struct MatchModel
 {
-    std::string game_id;
-    std::string white_username;
-    std::string black_username;
-    std::string white_ip;  // IP address of white player
-    std::string black_ip;  // IP address of black player
-    std::string start_fen;
+    std::string game_id;        // ID duy nhất của trận đấu
+    std::string white_username; // Tên người chơi quân Trắng
+    std::string black_username; // Tên người chơi quân Đen
+    std::string white_ip;       // Địa chỉ IP của người chơi quân Trắng
+    std::string black_ip;       // Địa chỉ IP của người chơi quân Đen
+    std::string start_fen;      // Trạng thái bàn cờ lúc bắt đầu (định dạng FEN)
+    
+    // Thời điểm bắt đầu và kết thúc trận đấu
     std::chrono::time_point<std::chrono::system_clock> start_time;
     std::chrono::time_point<std::chrono::system_clock> end_time;
 
+    /**
+     * @brief Cấu trúc đại diện cho một nước đi trong trận đấu.
+     */
     struct Move
     {
-        std::string uci_move;
-        std::string fen;
-        std::chrono::time_point<std::chrono::system_clock> move_time;
+        std::string uci_move; // Nước đi theo chuẩn UCI (ví dụ: e2e4)
+        std::string fen;      // Trạng thái bàn cờ sau nước đi này
+        std::chrono::time_point<std::chrono::system_clock> move_time; // Thời điểm thực hiện nước đi
     };
 
-    std::vector<Move> moves;
-    std::string result;
-    std::string reason;
+    std::vector<Move> moves; // Danh sách các nước đi đã thực hiện
+    std::string result;      // Kết quả trận đấu (ví dụ: "1-0", "0-1", "1/2-1/2")
+    std::string reason;      // Lý do kết thúc (ví dụ: "checkmate", "timeout", "resign")
 
+    /**
+     * @brief Chuyển đổi thông tin trận đấu sang định dạng JSON.
+     */
     json serialize() const
     {
         json j;
@@ -64,6 +89,7 @@ struct MatchModel
         j["white_ip"] = white_ip;
         j["black_ip"] = black_ip;
         j["start_fen"] = start_fen;
+        // Chuyển đổi thời gian sang dạng số (nanoseconds) để lưu vào JSON
         j["start_time"] = start_time.time_since_epoch().count();
         j["end_time"] = end_time.time_since_epoch().count();
 
@@ -84,6 +110,9 @@ struct MatchModel
         return j;
     }
 
+    /**
+     * @brief Khôi phục thông tin trận đấu từ dữ liệu JSON.
+     */
     static MatchModel deserialize(const std::string &game_id, const json &j)
     {
         MatchModel game;
@@ -93,6 +122,8 @@ struct MatchModel
         game.white_ip = j.value("white_ip", "");
         game.black_ip = j.value("black_ip", "");
         game.start_fen = j.at("start_fen").get<std::string>();
+        
+        // Khôi phục thời gian từ số nanoseconds
         game.start_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::nanoseconds(j.at("start_time").get<int64_t>()));
         game.end_time = std::chrono::time_point<std::chrono::system_clock>(std::chrono::nanoseconds(j.value("end_time", (int64_t)0)));
 
@@ -113,21 +144,17 @@ struct MatchModel
 };
 
 /**
- * @brief Lớp DataStorage là một Singleton quản lý dữ liệu người dùng trong ứng dụng TCP_Chess.
- *
- * Các chức năng chính:
- *
- * - Đăng ký người dùng mới với tên và điểm ELO mặc định.
- *
- * - Xác thực sự tồn tại của người dùng.
- *
- * - Lấy và cập nhật điểm ELO của người dùng.
- *
- * @note Lớp này không thể sao chép hoặc gán để đảm bảo chỉ có một instance được tồn tại.
+ * @brief Lớp DataStorage quản lý việc lưu trữ và truy xuất dữ liệu (Người dùng và Trận đấu).
+ * 
+ * Sử dụng mẫu thiết kế Singleton: Đảm bảo chỉ có một đối tượng duy nhất tồn tại trong suốt chương trình.
+ * Sử dụng Mutex để đảm bảo an toàn khi nhiều luồng (thread) cùng truy cập dữ liệu (Thread-safe).
  */
 class DataStorage
 {
 public:
+    /**
+     * @brief Lấy instance duy nhất của lớp DataStorage.
+     */
     static DataStorage &getInstance()
     {
         static DataStorage instance;
@@ -135,14 +162,15 @@ public:
     }
 
     /**
-     * Đăng ký một người dùng mới.
+     * @brief Đăng ký một người dùng mới.
      *
-     * @param username Tên người dùng cần đăng ký.
-     * @param elo Điểm Elo khởi tạo (mặc định: Const::DEFAULT_ELO).
-     * @return true nếu đăng ký thành công, false nếu tên người dùng đã tồn tại.
+     * @param username Tên người dùng.
+     * @param elo Điểm Elo khởi tạo.
+     * @return true nếu thành công, false nếu username đã tồn tại.
      */
     bool registerUser(const std::string &username, const uint16_t elo = Const::DEFAULT_ELO)
     {
+        // Khóa mutex để đảm bảo không có luồng nào khác can thiệp khi đang ghi dữ liệu
         std::lock_guard<std::mutex> lock(users_mutex);
 
         if (users.find(username) != users.end())
@@ -155,24 +183,23 @@ public:
             elo
         };
 
-        saveUsersData();
+        saveUsersData(); // Lưu lại vào file JSON ngay lập tức
 
         return true;
     }
 
     /**
-     * Kiểm tra tính hợp lệ của người dùng.
-     *
-     * @param username Tên người dùng cần xác thực.
-     * @return Trả về true nếu người dùng tồn tại, ngược lại trả về false.
+     * @brief Kiểm tra xem người dùng có tồn tại trong hệ thống hay không.
      */
     bool validateUser(const std::string &username)
     {
         std::lock_guard<std::mutex> lock(users_mutex);
-
         return users.find(username) != users.end();
     }
 
+    /**
+     * @brief Lấy điểm ELO của một người dùng.
+     */
     uint16_t getUserELO(const std::string &username)
     {
         std::lock_guard<std::mutex> lock(users_mutex);
@@ -182,9 +209,12 @@ public:
         {
             return it->second.elo;
         }
-        return 0; // ELO mặc định nếu không tìm thấy
+        return 0; // Trả về 0 nếu không tìm thấy
     }
 
+    /**
+     * @brief Cập nhật điểm ELO cho người dùng.
+     */
     bool updateUserELO(const std::string &username, const uint16_t elo)
     {
         std::lock_guard<std::mutex> lock(users_mutex);
@@ -193,12 +223,15 @@ public:
         if (it != users.end())
         {
             it->second.elo = elo;
-            saveUsersData();
+            saveUsersData(); // Lưu thay đổi vào file
             return true;
         }
         return false;
     }
 
+    /**
+     * @brief Lấy danh sách toàn bộ người dùng.
+     */
     std::unordered_map<std::string, UserModel> getPlayerList()
     {
         std::lock_guard<std::mutex> lock(users_mutex);
@@ -206,10 +239,10 @@ public:
     }
 
     /**
-     * @brief Tính thứ hạng của user trong bảng xếp hạng.
+     * @brief Tính thứ hạng (Rank) của người dùng dựa trên điểm ELO.
      * 
-     * @param username Tên người dùng cần tính rank.
-     * @return Thứ hạng (1 = cao nhất), 0 nếu không tìm thấy user.
+     * @param username Tên người dùng.
+     * @return Thứ hạng (1 là cao nhất), 0 nếu không tìm thấy.
      */
     int getUserRank(const std::string &username)
     {
@@ -218,12 +251,13 @@ public:
         auto it = users.find(username);
         if (it == users.end())
         {
-            return 0; // User không tồn tại
+            return 0;
         }
         
         uint16_t user_elo = it->second.elo;
         int rank = 1;
         
+        // Duyệt qua tất cả người dùng để đếm xem có bao nhiêu người điểm cao hơn
         for (const auto &[name, user] : users)
         {
             if (user.elo > user_elo)
@@ -237,15 +271,15 @@ public:
 
 public:
     /**
-     * @brief Đăng ký một trận đấu mới.
+     * @brief Đăng ký một trận đấu mới vào hệ thống.
      *
-     * @param game_id ID của trận đấu.
-     * @param white_username Tên người chơi cầm quân trắng.
-     * @param black_username Tên người chơi cầm quân đen.
-     * @param start_fen Vị trí FEN khởi đầu.
-     * @param white_ip IP của người chơi trắng.
-     * @param black_ip IP của người chơi đen.
-     * @return true nếu đăng ký thành công, false nếu trận đấu đã tồn tại.
+     * @param game_id ID trận đấu.
+     * @param white_username Người chơi trắng.
+     * @param black_username Người chơi đen.
+     * @param start_fen Thế cờ khởi đầu.
+     * @param white_ip IP người chơi trắng.
+     * @param black_ip IP người chơi đen.
+     * @return true nếu thành công.
      */
     bool registerMatch(const std::string &game_id, const std::string &white_username, const std::string &black_username, const std::string &start_fen, const std::string &white_ip = "", const std::string &black_ip = "")
     {
@@ -263,24 +297,19 @@ public:
         match.white_ip = white_ip;
         match.black_ip = black_ip;
         match.start_fen = start_fen;
-        match.start_time = std::chrono::system_clock::now();
-        match.end_time = std::chrono::time_point<std::chrono::system_clock>();  // Not ended yet
+        match.start_time = std::chrono::system_clock::now(); // Ghi nhận thời gian hiện tại
+        match.end_time = std::chrono::time_point<std::chrono::system_clock>();  // Chưa kết thúc
         match.result = "";
         match.reason = "";
         
         matches[game_id] = match;
 
-        saveMatchesData();
+        saveMatchesData(); // Lưu vào file matches.json
         return true;
     }
 
     /**
-     * @brief Cập nhật kết quả của một trận đấu.
-     *
-     * @param game_id ID của trận đấu.
-     * @param result Kết quả trận đấu.
-     * @param reason Lý do kết quả.
-     * @return true nếu cập nhật thành công, false nếu không tìm thấy trận đấu.
+     * @brief Cập nhật kết quả cuối cùng của trận đấu.
      */
     bool updateMatchResult(const std::string &game_id, const std::string &result, const std::string &reason)
     {
@@ -291,7 +320,7 @@ public:
         {
             it->second.result = result;
             it->second.reason = reason;
-            it->second.end_time = std::chrono::system_clock::now();  // Set end time
+            it->second.end_time = std::chrono::system_clock::now(); // Ghi nhận thời gian kết thúc
             saveMatchesData();
             return true;
         }
@@ -299,10 +328,7 @@ public:
     }
 
     /**
-     * @brief Lấy thông tin một trận đấu.
-     *
-     * @param game_id ID của trận đấu.
-     * @return MatchModel nếu tìm thấy, hoặc ném ngoại lệ nếu không tìm thấy.
+     * @brief Lấy thông tin chi tiết của một trận đấu qua ID.
      */
     MatchModel getMatch(const std::string &game_id)
     {
@@ -317,11 +343,7 @@ public:
     }
 
     /**
-     * @brief Thêm một nước đi vào trận đấu.
-     *
-     * @param game_id ID của trận đấu.
-     * @param move Nước đi cần thêm.
-     * @return true nếu thành công, false nếu không tìm thấy trận đấu.
+     * @brief Lưu lại một nước đi mới vào lịch sử trận đấu.
      */
     bool addMove(const std::string &game_id, const std::string &uci_move, const std::string &fen)
     {
@@ -343,19 +365,24 @@ public:
 
 
 private:
-    std::unordered_map<std::string, UserModel> users; // mapping username -> User
-    std::mutex users_mutex;
+    // Dữ liệu người dùng: ánh xạ từ username sang UserModel
+    std::unordered_map<std::string, UserModel> users; 
+    std::mutex users_mutex; // Mutex bảo vệ dữ liệu người dùng
 
-    std::unordered_map<std::string, MatchModel> matches; // mapping game_id -> Match
-    std::mutex matches_mutex;
+    // Dữ liệu trận đấu: ánh xạ từ game_id sang MatchModel
+    std::unordered_map<std::string, MatchModel> matches; 
+    std::mutex matches_mutex; // Mutex bảo vệ dữ liệu trận đấu
 
+    // Các phương thức private để ngăn chặn việc tạo thêm instance (Singleton)
     ~DataStorage() = default;
     DataStorage(const DataStorage &) = delete;
     DataStorage &operator=(const DataStorage &) = delete;
 
+    /**
+     * @brief Xác định đường dẫn thư mục chứa dữ liệu (data/) tương đối với file thực thi.
+     */
     std::string getDataPath()
     {
-        // Get the path of the executable
         char result[PATH_MAX];
         ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
         std::string exePath = "";
@@ -366,15 +393,18 @@ private:
             exePath = exePath.substr(0, lastSlash);
         }
 
-        // Construct the data path relative to the executable
+        // Dữ liệu được lưu trong thư mục ../data/ so với vị trí file chạy
         return exePath + "/../data/";
     }
 
+    /**
+     * @brief Constructor: Tự động tải dữ liệu từ các file JSON khi khởi tạo.
+     */
     DataStorage()
     {
         std::string dataPath = getDataPath();
 
-        // Load users.json
+        // Tải dữ liệu người dùng
         json users_j = JSONHandler::readJSON(dataPath + "users.json");
         for (auto it = users_j.begin(); it != users_j.end(); ++it)
         {
@@ -382,7 +412,7 @@ private:
             users[username] = UserModel::deserialize(username, it.value());
         }
 
-        // Load matches.json
+        // Tải dữ liệu các trận đấu
         json matches_j = JSONHandler::readJSON(dataPath + "matches.json");
         for (auto it = matches_j.begin(); it != matches_j.end(); ++it)
         {
@@ -391,6 +421,9 @@ private:
         }
     }
 
+    /**
+     * @brief Ghi toàn bộ dữ liệu người dùng hiện tại vào file users.json.
+     */
     bool saveUsersData()
     {
         json j;
@@ -403,6 +436,9 @@ private:
         return true;
     }
 
+    /**
+     * @brief Ghi toàn bộ dữ liệu trận đấu hiện tại vào file matches.json.
+     */
     bool saveMatchesData()
     {
         json j;

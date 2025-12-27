@@ -56,6 +56,10 @@ enum class MessageType : uint8_t
 };
 
 // Cấu trúc gói tin cơ bản
+// +---------+-----------+------------------+
+// |  type   |  length   |     payload      |
+// | 1 byte  |  2 bytes  |   length bytes   |
+// +---------+-----------+------------------+
 struct Packet
 {
     MessageType type;
