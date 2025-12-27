@@ -146,38 +146,7 @@ while (currentState != ClientState::EXITING) {
 
 ### 4.1 Flow tổng quan
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant EventLoop
-    participant InputProcessor
-    participant MessageHandler
-    participant NetworkClient
-    participant Server
-    
-    EventLoop->>EventLoop: select(stdin, socket)
-    
-    alt User Input
-        User->>EventLoop: keystroke
-        EventLoop->>InputProcessor: processInput(state, input, ctx)
-        InputProcessor->>InputProcessor: Xử lý theo state
-        InputProcessor-->>EventLoop: new_state
-        opt Cần gửi server
-            InputProcessor->>NetworkClient: sendPacket()
-            NetworkClient->>Server: TCP
-        end
-    end
-    
-    alt Server Message
-        Server->>NetworkClient: TCP
-        NetworkClient->>EventLoop: receivePacket()
-        EventLoop->>MessageHandler: handleMessage(state, packet, ctx)
-        MessageHandler->>MessageHandler: Xử lý theo message type
-        MessageHandler-->>EventLoop: new_state
-    end
-    
-    EventLoop->>EventLoop: currentState = new_state
-```
+![Flow tổng quan](https://i.ibb.co/NgYrRCwd/Mermaid-Chart-Create-complex-visual-diagrams-with-text-2025-12-27-144655.png)
 
 ### 4.2 Non-blocking I/O
 

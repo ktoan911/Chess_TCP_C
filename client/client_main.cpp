@@ -97,11 +97,11 @@ int main()
     // Set stdin to non-blocking mode
     fcntl(STDIN_FILENO, F_SETFL, g_stdinFlags | O_NONBLOCK);
 
-    // Disable canonical mode for stdin (get chars immediately)
+    // Disable canonical mode and echo for stdin
     struct termios new_tio = g_oldTio;
-    new_tio.c_lflag &= (~ICANON);  // Disable canonical mode
-    new_tio.c_cc[VMIN] = 0;        // Don't wait for characters
-    new_tio.c_cc[VTIME] = 0;       // No timeout
+    new_tio.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode AND echo
+    new_tio.c_cc[VMIN] = 0;               // Don't wait for characters
+    new_tio.c_cc[VTIME] = 0;              // No timeout
     tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
 
     // Initialize state
@@ -155,28 +155,27 @@ int main()
             }
         }
 
-        // Check for server message
+        // Check for server message - process ALL buffered packets
         if (FD_ISSET(socket_fd, &read_fds))
         {
             Packet packet;
-            if (network.receivePacket(packet))
+            // Keep processing while there are complete packets in buffer
+            while (network.receivePacket(packet))
             {
                 ClientState newState = messageHandler.handleMessage(currentState, packet, context);
                 
                 // Clear input buffer when state changes from server message
-                // This prevents leftover input from corrupting next input
                 if (newState != currentState)
                 {
                     inputBuffer.clear();
                 }
                 
                 currentState = newState;
-            }
-            else
-            {
-                // Connection closed or error - exit gracefully
-                UI::printErrorMessage("Mất kết nối đến server.");
-                currentState = ClientState::EXITING;
+                
+                if (currentState == ClientState::EXITING)
+                {
+                    break;
+                }
             }
         }
     }
