@@ -22,6 +22,21 @@ struct ClientInfo
     std::string username = "";
 };
 
+/**
+ * @brief Lớp NetworkServer là một Singleton quản lý máy chủ mạng TCP cho ứng dụng cờ vua.
+ *
+ * Lớp này chịu trách nhiệm:
+ * - Khởi tạo và quản lý socket server, lắng nghe kết nối từ client trên cổng chỉ định.
+ * - Chấp nhận kết nối mới từ client và quản lý danh sách client đang kết nối.
+ * - Gửi và nhận gói tin (Packet) giữa server và client, sử dụng giao thức tùy chỉnh.
+ * - Quản lý thông tin client: username, buffer dữ liệu, địa chỉ IP.
+ * - Cung cấp các phương thức để gửi packet tới client cụ thể hoặc theo username.
+ * - Kiểm tra trạng thái kết nối của client và đóng kết nối khi cần.
+ * - Đảm bảo thread-safety thông qua mutex cho các thao tác trên danh sách client.
+ *
+ * @note Lớp này sử dụng mô hình Singleton để đảm bảo chỉ có một instance server tồn tại.
+ * @note Sử dụng socket POSIX (Linux-specific) cho network operations.
+ */
 class NetworkServer
 {
 private:

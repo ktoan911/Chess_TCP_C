@@ -125,10 +125,6 @@ private:
             handleChallengeAccepted(packet.payload);
             break;
 
-
-
-
-
         default:
             // Handle unknown message type
             handleUnknown(packet.payload);
@@ -139,7 +135,7 @@ private:
         return success;
     }
 
-    // Handle specific message types ============================================================================
+    // Handle specific message types 
 
     void handleUnknown(const std::vector<uint8_t> &payload)
     {

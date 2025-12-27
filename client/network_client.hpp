@@ -127,7 +127,10 @@ public:
         ssize_t sent = send(socket_fd, serialized.data(), serialized.size(), 0);
         if (sent != static_cast<ssize_t>(serialized.size()))
         {
-            perror("send failed");
+            // make it more precise
+            std::string err_msg = (sent < 0) ? std::strerror(errno) : "Incomplete send";
+            std::cerr << "Gửi gói tin thất bại: " << err_msg << std::endl;
+            
             return false;
         }
         return true;

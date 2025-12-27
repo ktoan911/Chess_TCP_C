@@ -2,13 +2,18 @@
 
 #include "message_handler.hpp"
 #include "network_server.hpp"
+#include "data_storage.hpp"
+#include "game_manager.hpp"
 #include "../common/protocol.hpp"
 #include "../common/message.hpp"
 #include <iostream>
 #include <vector>
 
 int main() {
-    MessageHandler handler;
+    NetworkServer &server = NetworkServer::getInstance();
+    DataStorage &storage = DataStorage::getInstance();
+    GameManager &gameManager = GameManager::getInstance();
+    MessageHandler handler(server, storage, gameManager);
 
     // Test REGISTER message
     RegisterMessage register_msg;

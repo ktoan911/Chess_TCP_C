@@ -13,8 +13,13 @@ void handleClient(int client_fd);
 
 int main()
 {
-    // Khởi tạo NetworkServer
+    // Khởi tạo các singletons
     NetworkServer &network_server = NetworkServer::getInstance();
+    DataStorage &data_storage = DataStorage::getInstance();
+    GameManager &game_manager = GameManager::getInstance();
+
+    // Khởi tạo GameManager với dependencies (DI)
+    game_manager.init(network_server, data_storage);
 
     // Tạo một vector chứa tất cả các thread xử lý client
     std::vector<std::thread> client_threads;
@@ -46,7 +51,9 @@ int main()
 void handleClient(int client_fd)
 {
     NetworkServer &network_server = NetworkServer::getInstance();
-    MessageHandler message_handler;
+    DataStorage &storage = DataStorage::getInstance();
+    GameManager &game_manager = GameManager::getInstance();
+    MessageHandler message_handler(network_server, storage, game_manager);
 
     while (true)
     {
@@ -55,7 +62,6 @@ void handleClient(int client_fd)
         if (!received)
         {
             std::cout << "Client " << client_fd << " ngắt kết nối." << std::endl;
-            GameManager &game_manager = GameManager::getInstance();
             game_manager.clientDisconnected(client_fd);
 
             network_server.closeConnection(client_fd);

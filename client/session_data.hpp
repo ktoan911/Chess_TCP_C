@@ -39,6 +39,7 @@ public:
     void setCurrentHandler(std::thread::id id) {
         std::lock_guard<std::mutex> lock(handler_mutex);
         current_handler_id.store(id);
+        
         InputHandler::setCancelCheck([this]() {
             return !isCurrentHandler();
         });

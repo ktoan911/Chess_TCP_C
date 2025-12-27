@@ -8,6 +8,8 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
+#include <random>
+#include <sstream>
 
 #include "../chess_engine/chess.hpp"
 #include "../common/const.hpp"
@@ -52,6 +54,7 @@ public:
     bool makeMove(const std::string &uci_move)
     {
         chess::Move move = chess::uci::uciToMove(board, uci_move);
+
         if (!isValidMove(board, move))
             return false;
 
@@ -72,7 +75,7 @@ public:
             if (result == chess::GameResult::DRAW)
                 winner = "<0>";
             else if (result == chess::GameResult::LOSE)
-                winner = (current_turn == player_white_name) ? player_white_name : player_black_name;
+                winner = current_turn;
         }
 
         return true;
@@ -153,9 +156,10 @@ private:
             return false;
         }
 
-        chess::Movelist moves;
-        chess::movegen::legalmoves(moves, board);
-        if (std::find(moves.begin(), moves.end(), move) == moves.end())
+        chess::Movelist legal_moves;
+        chess::movegen::legalmoves(legal_moves, board);
+
+        if (std::find(legal_moves.begin(), legal_moves.end(), move) == legal_moves.end())
         {
             return false;
         }
@@ -190,33 +194,98 @@ struct PendingGame
 
 /**
  * @class GameManager
- * @brief Quản lý các ván cờ và hệ thống ghép trận.
+ * @brief Quản lý logic game cờ vua, matchmaking và trạng thái trận đấu.
  *
- * Lớp này chịu trách nhiệm quản lý các ván cờ đang diễn ra,
- * xử lý các yêu cầu di chuyển, và ghép trận cho người chơi.
- * Sử dụng Singleton pattern để đảm bảo chỉ có một instance duy nhất.
+ * Singleton class trung tâm quản lý các ván cờ đang diễn ra, hệ thống
+ * ghép trận tự động, xử lý nước đi và tương tác với NetworkServer/DataStorage.
+ * Đảm bảo thread-safety với mutex và condition variables.
  *
- * Các chức năng chính bao gồm:
+ * ## Kiến trúc và Thiết kế
+ * - **Singleton Pattern**: Truy cập duy nhất qua `getInstance()`.
+ * - **Thread-Safe**: Sử dụng mutex bảo vệ dữ liệu chia sẻ.
+ * - **Multi-threading**: Luồng riêng cho matchmaking loop.
  *
- * - Tạo và quản lý các ván cờ.
+ * ## Thành viên Dữ liệu Chính
+ * - `games`: Map lưu trữ các trận đấu đang hoạt động.
+ * - `pending_games`: Map lưu trữ trận đấu chờ chấp nhận (chỉ auto match).
+ * - `matchmaking_queue`: Queue client_fd chờ ghép trận.
+ * - Mutex và condition variable cho đồng bộ hóa.
  *
- * - Xử lý các yêu cầu di chuyển từ người chơi.
+ * ## Luồng Hoạt động Chính
  *
- * - Ghép trận tự động dựa trên ELO của người chơi.
+ * ### Matchmaking (Auto Match)
+ * Client gửi AUTO_MATCH_REQUEST → Thêm vào queue → Matchmaking loop tìm cặp
+ * dựa ELO → Tạo PendingGame → Gửi AutoMatchFoundMessage → Chờ chấp nhận
+ * → Tạo game thực sự.
  *
- * - Gửi thông báo về trạng thái trò chơi và kết quả trận đấu cho người chơi.
+ * ### Challenge
+ * Client gửi CHALLENGE_REQUEST → Kiểm tra điều kiện → Gửi notification
+ * → Khi chấp nhận → Tạo game ngay (không PendingGame).
  *
- * - Quản lý hàng đợi ghép trận và xử lý các yêu cầu chấp nhận hoặc từ chối ghép trận.
+ * ### Game Play
+ * Xử lý MOVE → Validate → Update board → Notify players → Kiểm tra kết thúc.
  *
+ * ### Surrender/Disconnect
+ * Cập nhật kết quả, ELO, xóa game.
+ *
+ * ## Phương thức Chính
+ *
+ * ### Quản lý Game
+ * - `createGame()`: Tạo game mới, generate ID, lưu DB.
+ * - `handleMove()`: Xử lý nước đi, validate, update.
+ * - `endGame()`: Kết thúc game, update ELO, gửi kết quả.
+ *
+ * ### Matchmaking
+ * - `addPlayerToQueue()`: Thêm vào queue.
+ * - `handleAutoMatchAccepted/Declined()`: Xử lý chấp nhận/từ chối.
+ *
+ * ### Utility
+ * - `isUserInGame()`, `getUserGameId()`: Kiểm tra trạng thái user.
+ * - `clientDisconnected()`: Xử lý ngắt kết nối.
+ *
+ * ## Dependencies
+ * - NetworkServer: Gửi packet, lấy info client.
+ * - DataStorage: Lưu trữ data, update ELO.
+ * - chess_engine: Logic cờ vua.
+ *
+ * @note Game ID generate từ player names + timestamp.
+ * @note ELO: Win +3, Lose -3 (min 0).
+ * @note PendingGame chỉ dùng cho auto match.
  */
 class GameManager
 {
 private:
+    // Hàm tạo UUID đơn giản
+    std::string generateUUID() {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, 15);
+        std::uniform_int_distribution<> dis2(8, 11);
+
+        std::stringstream ss;
+        int i;
+        ss << std::hex;
+        for (i = 0; i < 8; i++) ss << dis(gen);
+        ss << "-";
+        for (i = 0; i < 4; i++) ss << dis(gen);
+        ss << "-4";  // Version 4
+        for (i = 0; i < 3; i++) ss << dis(gen);
+        ss << "-";
+        ss << dis2(gen);  // Variant
+        for (i = 0; i < 3; i++) ss << dis(gen);
+        ss << "-";
+        for (i = 0; i < 12; i++) ss << dis(gen);
+        return ss.str();
+    }
+
     std::unordered_map<std::string, std::shared_ptr<Game>> games;
     std::unordered_map<std::string, PendingGame> pending_games;
     std::mutex games_mutex;
 
-
+    // DI dependencies
+    NetworkServer* network_server_;
+    DataStorage* data_storage_;
+    bool initialized_;
 
     std::queue<int> matchmaking_queue; // Queue of client_fds
     std::condition_variable cv;
@@ -226,7 +295,7 @@ private:
     std::mutex matchmaking_mutex;
 
     // Private constructor for Singleton
-    GameManager() : stop_matching(false), matchmaking_thread(&GameManager::matchmakingLoop, this) {}
+    GameManager() : network_server_(nullptr), data_storage_(nullptr), initialized_(false), stop_matching(false) {}
 
     /**
      * @brief Vòng lặp quản lý tìm kiếm trận đấu.
@@ -275,11 +344,8 @@ private:
                 int client1_fd = matchmaking_queue.front();
                 matchmaking_queue.pop();
 
-                NetworkServer &network_server = NetworkServer::getInstance();
-                DataStorage &data_storage = DataStorage::getInstance();
-
                 // Check if client1 is still connected
-                if (!network_server.isClientConnected(client1_fd))
+                if (!network_server_->isClientConnected(client1_fd))
                 {
                     // Client disconnected, skip and continue
                     lock.unlock();
@@ -287,15 +353,15 @@ private:
                     continue;
                 }
 
-                std::string username1 = network_server.getUsername(client1_fd);
-                uint16_t elo1 = data_storage.getUserELO(username1);
+                std::string username1 = network_server_->getUsername(client1_fd);
+                uint16_t elo1 = data_storage_->getUserELO(username1);
 
                 // Search through entire queue for a matching opponent
                 int matched_client_fd = -1;
                 std::string matched_username;
                 uint16_t matched_elo = 0;
-                size_t queue_size = matchmaking_queue.size();
-                std::queue<int> temp_queue;
+                size_t queue_size = matchmaking_queue.size(); // use to loop through current queue
+                std::queue<int> temp_queue; // Temporary queue to hold non-matching clients
 
                 for (size_t i = 0; i < queue_size; i++)
                 {
@@ -303,7 +369,7 @@ private:
                     matchmaking_queue.pop();
 
                     // Check if candidate is still connected
-                    if (!network_server.isClientConnected(candidate_fd))
+                    if (!network_server_->isClientConnected(candidate_fd))
                     {
                         // Skip disconnected clients
                         continue;
@@ -311,8 +377,8 @@ private:
 
                     if (matched_client_fd == -1)
                     {
-                        std::string candidate_username = network_server.getUsername(candidate_fd);
-                        uint16_t candidate_elo = data_storage.getUserELO(candidate_username);
+                        std::string candidate_username = network_server_->getUsername(candidate_fd);
+                        uint16_t candidate_elo = data_storage_->getUserELO(candidate_username);
 
                         if (abs(static_cast<int>(elo1) - static_cast<int>(candidate_elo)) <= Const::ELO_THRESHOLD)
                         {
@@ -361,14 +427,14 @@ private:
                     auto_match_found_msg_1.opponent_elo = matched_elo;
                     auto_match_found_msg_1.game_id = game_id;
                     std::vector<uint8_t> serialized_1 = auto_match_found_msg_1.serialize();
-                    network_server.sendPacket(client1_fd, MessageType::AUTO_MATCH_FOUND, serialized_1);
+                    network_server_->sendPacket(client1_fd, MessageType::AUTO_MATCH_FOUND, serialized_1);
 
                     AutoMatchFoundMessage auto_match_found_msg_2;
                     auto_match_found_msg_2.opponent_username = username1;
                     auto_match_found_msg_2.opponent_elo = elo1;
                     auto_match_found_msg_2.game_id = game_id;
                     std::vector<uint8_t> serialized_2 = auto_match_found_msg_2.serialize();
-                    network_server.sendPacket(matched_client_fd, MessageType::AUTO_MATCH_FOUND, serialized_2);
+                    network_server_->sendPacket(matched_client_fd, MessageType::AUTO_MATCH_FOUND, serialized_2);
                 }
                 else
                 {
@@ -396,7 +462,7 @@ private:
 
     std::shared_ptr<Game> getGameByClientFd(int client_fd)
     {
-        std::string username = NetworkServer::getInstance().getUsername(client_fd);
+        std::string username = network_server_->getUsername(client_fd);
 
         for (const auto &game_pair : games)
         {
@@ -414,10 +480,45 @@ public:
     GameManager(const GameManager &) = delete;
     GameManager &operator=(const GameManager &) = delete;
 
+    /**
+     * @brief Destructor - dừng matchmaking thread một cách graceful.
+     */
+    ~GameManager()
+    {
+        {
+            std::lock_guard<std::mutex> lock(matchmaking_mutex);
+            stop_matching = true;
+        }
+        cv.notify_one();
+        if (matchmaking_thread.joinable())
+        {
+            matchmaking_thread.join();
+        }
+    }
+
     static GameManager &getInstance()
     {
         static GameManager instance;
         return instance;
+    }
+
+    /**
+     * @brief Khởi tạo GameManager với các dependencies.
+     * 
+     * Phải được gọi một lần duy nhất trước khi sử dụng GameManager.
+     * 
+     * @param network_server Reference đến NetworkServer instance.
+     * @param data_storage Reference đến DataStorage instance.
+     */
+    void init(NetworkServer& network_server, DataStorage& data_storage)
+    {
+        if (!initialized_)
+        {
+            network_server_ = &network_server;
+            data_storage_ = &data_storage;
+            initialized_ = true;
+            matchmaking_thread = std::thread(&GameManager::matchmakingLoop, this);
+        }
     }
 
     /**
@@ -432,27 +533,15 @@ public:
     {
         std::lock_guard<std::mutex> lock(games_mutex);
 
-        // Generate game_id based on player names and current time with higher precision
-        using namespace std::chrono;
-        auto now = system_clock::now();
-        auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-        auto in_time_t = system_clock::to_time_t(now);
-        std::tm tm = *std::localtime(&in_time_t);
-        std::ostringstream oss;
-        char buffer[30];
-        std::strftime(buffer, sizeof(buffer), "%Y%m%d%H%M%S", &tm);
-        oss << "game_" << player_white_name << "_" << player_black_name << "_" << buffer << "_" << ms.count();
-        std::string game_id = oss.str();
+        std::string game_id = generateUUID();
 
         games[game_id] = std::make_shared<Game>(game_id, player_white_name, player_black_name, initial_fen);
 
         // Get player IPs
-        NetworkServer &network_server = NetworkServer::getInstance();
-        std::string white_ip = network_server.getClientIPByUsername(player_white_name);
-        std::string black_ip = network_server.getClientIPByUsername(player_black_name);
+        std::string white_ip = network_server_->getClientIPByUsername(player_white_name);
+        std::string black_ip = network_server_->getClientIPByUsername(player_black_name);
 
-        DataStorage &datastorage = DataStorage::getInstance();
-        datastorage.registerMatch(game_id, player_white_name, player_black_name, initial_fen, white_ip, black_ip);
+        data_storage_->registerMatch(game_id, player_white_name, player_black_name, initial_fen, white_ip, black_ip);
 
         return game_id;
     }
@@ -509,8 +598,7 @@ public:
             std::shared_ptr<Game> game = getGame(game_id);
 
             // Save the player's move to the database
-            DataStorage &data_storage = DataStorage::getInstance();
-            data_storage.addMove(game_id, uci_move, getGameFen(game_id));
+            data_storage_->addMove(game_id, uci_move, getGameFen(game_id));
 
             // Notify players about the move
             notifyPlayers(game_id, game);
@@ -527,13 +615,12 @@ public:
         else
         {
             // Invalid move
-            NetworkServer &network_server = NetworkServer::getInstance();
             InvalidMoveMessage invalid_move_msg;
             invalid_move_msg.game_id = game_id;
             invalid_move_msg.error_message = "Invalid move: " + uci_move;
 
             std::vector<uint8_t> serialized = invalid_move_msg.serialize();
-            network_server.sendPacket(client_fd, MessageType::INVALID_MOVE, serialized);
+            network_server_->sendPacket(client_fd, MessageType::INVALID_MOVE, serialized);
         }
     }
 
@@ -541,8 +628,6 @@ public:
     {
         std::string player_white_name = game->player_white_name;
         std::string player_black_name = game->player_black_name;
-
-        NetworkServer &network_server = NetworkServer::getInstance();
 
         // Prepare GameStatusUpdateMessage
         GameStatusUpdateMessage game_status_update_msg;
@@ -562,8 +647,8 @@ public:
 
         // Serialize and send the update to both players
         std::vector<uint8_t> serialized = game_status_update_msg.serialize();
-        network_server.sendPacketToUsername(player_white_name, MessageType::GAME_STATUS_UPDATE, serialized);
-        network_server.sendPacketToUsername(player_black_name, MessageType::GAME_STATUS_UPDATE, serialized);
+        network_server_->sendPacketToUsername(player_white_name, MessageType::GAME_STATUS_UPDATE, serialized);
+        network_server_->sendPacketToUsername(player_black_name, MessageType::GAME_STATUS_UPDATE, serialized);
     }
 
     /**
@@ -585,19 +670,18 @@ public:
         std::string reason = getGameResultReason(game_id);
         uint16_t half_moves_count = getGameHalfMovesCount(game_id);
 
-        DataStorage &data_storage = DataStorage::getInstance();
-        data_storage.updateMatchResult(game_id, winner, reason);
+        data_storage_->updateMatchResult(game_id, winner, reason);
 
-        uint16_t white_elo = data_storage.getUserELO(player_white_name);
-        uint16_t black_elo = data_storage.getUserELO(player_black_name);
+        uint16_t white_elo = data_storage_->getUserELO(player_white_name);
+        uint16_t black_elo = data_storage_->getUserELO(player_black_name);
         
         if (winner == "<0>") {
         } else if (winner == player_white_name) {
-            data_storage.updateUserELO(player_white_name, white_elo + 3);
-            data_storage.updateUserELO(player_black_name, (black_elo >= 3) ? black_elo - 3 : 0);
+            data_storage_->updateUserELO(player_white_name, white_elo + 3);
+            data_storage_->updateUserELO(player_black_name, (black_elo >= 3) ? black_elo - 3 : 0);
         } else {
-            data_storage.updateUserELO(player_black_name, black_elo + 3);
-            data_storage.updateUserELO(player_white_name, (white_elo >= 3) ? white_elo - 3 : 0);
+            data_storage_->updateUserELO(player_black_name, black_elo + 3);
+            data_storage_->updateUserELO(player_white_name, (white_elo >= 3) ? white_elo - 3 : 0);
         }
 
         // Prepare and send GameEndMessage to both players
@@ -608,14 +692,13 @@ public:
         game_end_msg.half_moves_count = half_moves_count;
 
         std::vector<uint8_t> serialized_end = game_end_msg.serialize();
-        NetworkServer &network_server = NetworkServer::getInstance();
-        network_server.sendPacketToUsername(player_white_name, MessageType::GAME_END, serialized_end);
-        network_server.sendPacketToUsername(player_black_name, MessageType::GAME_END, serialized_end);
+        network_server_->sendPacketToUsername(player_white_name, MessageType::GAME_END, serialized_end);
+        network_server_->sendPacketToUsername(player_black_name, MessageType::GAME_END, serialized_end);
 
         // Prepare and send GameLogMessage to both players
         try
         {
-            MatchModel match = data_storage.getMatch(game_id);
+            MatchModel match = data_storage_->getMatch(game_id);
             
             GameLogMessage game_log_msg;
             game_log_msg.game_id = game_id;
@@ -633,8 +716,8 @@ public:
             }
             
             std::vector<uint8_t> serialized_log = game_log_msg.serialize();
-            network_server.sendPacketToUsername(player_white_name, MessageType::GAME_LOG, serialized_log);
-            network_server.sendPacketToUsername(player_black_name, MessageType::GAME_LOG, serialized_log);
+            network_server_->sendPacketToUsername(player_white_name, MessageType::GAME_LOG, serialized_log);
+            network_server_->sendPacketToUsername(player_black_name, MessageType::GAME_LOG, serialized_log);
             
             std::cout << "[GAME_LOG] Sent game log for " << game_id << " to both players." << std::endl;
         }
@@ -659,8 +742,7 @@ public:
      */
     void clientDisconnected(int client_fd)
     {
-        NetworkServer &network_server = NetworkServer::getInstance();
-        std::string username = network_server.getUsername(client_fd);
+        std::string username = network_server_->getUsername(client_fd);
         std::shared_ptr<Game> game = getGameByClientFd(client_fd);
 
         if (game != nullptr)
@@ -683,17 +765,16 @@ public:
             game_end_msg.winner_username = opponent_name;
             game_end_msg.reason = "Opponent disconnected";
             game_end_msg.half_moves_count = game->getHalfMovesCount();
-            network_server.sendPacketToUsername(opponent_name, MessageType::GAME_END, game_end_msg.serialize());
+            network_server_->sendPacketToUsername(opponent_name, MessageType::GAME_END, game_end_msg.serialize());
 
             // Update points (disconnect = lose: -3, opponent wins: +3)
-            DataStorage &data_storage = DataStorage::getInstance();
-            int current_elo = data_storage.getUserELO(username);
-            int current_opponent_elo = data_storage.getUserELO(opponent_name);
+            int current_elo = data_storage_->getUserELO(username);
+            int current_opponent_elo = data_storage_->getUserELO(opponent_name);
             int new_elo = (current_elo >= 3) ? current_elo - 3 : 0;  // Lose -3
             int new_opponent_elo = current_opponent_elo + 3;  // Win +3
 
-            data_storage.updateUserELO(username, new_elo);
-            data_storage.updateUserELO(opponent_name, new_opponent_elo);
+            data_storage_->updateUserELO(username, new_elo);
+            data_storage_->updateUserELO(opponent_name, new_opponent_elo);
 
             // Remove the game from the system
             removeGame(game_id);

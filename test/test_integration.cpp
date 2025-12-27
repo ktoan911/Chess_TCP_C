@@ -3,13 +3,17 @@
 #include <vector>
 #include <chrono>
 #include "../server/network_server.hpp"
+#include "../server/data_storage.hpp"
+#include "../server/game_manager.hpp"
 #include "../client/network_client.hpp"
 #include "../server/message_handler.hpp"
 
 // Hàm chạy server
 void runServer() {
     NetworkServer &server = NetworkServer::getInstance();
-    MessageHandler handler;
+    DataStorage &storage = DataStorage::getInstance();
+    GameManager &gameManager = GameManager::getInstance();
+    MessageHandler handler(server, storage, gameManager);
 
     std::cout << "Server bắt đầu lắng nghe..." << std::endl;
 
