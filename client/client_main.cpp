@@ -3,7 +3,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/select.h>
+#include <poll.h>
 #include <termios.h>
 #include <csignal>
 
@@ -14,10 +14,10 @@
 #include "input_processor.hpp"
 #include "ui.hpp"
 
-// Global state for signal handling
-static ClientState* g_currentState = nullptr;
+// Global state for cleanup
 static struct termios g_oldTio;
 static int g_stdinFlags = 0;
+static ClientState* g_currentState = nullptr;
 
 /**
  * @brief Signal handler for graceful shutdown (Ctrl+C)
@@ -40,10 +40,7 @@ void cleanupTerminal()
 }
 
 /**
- * @brief Đọc một dòng từ stdin (non-blocking với buffer)
- * 
- * @param line_buffer Buffer tích lũy ký tự
- * @return true nếu có dòng hoàn chỉnh (kết thúc bằng newline)
+ * @brief Đọc một dòng từ stdin (non-blocking)
  */
 bool readLineNonBlocking(std::string &line_buffer)
 {
@@ -52,101 +49,79 @@ bool readLineNonBlocking(std::string &line_buffer)
     {
         if (c == '\n' || c == '\r')
         {
-            std::cout << std::endl;  // Echo newline
-            return true;  // Complete line
+            std::cout << std::endl;
+            return true;
         }
-        else if (c == 127 || c == 8)  // Backspace (127) or Delete (8)
+        else if (c == 127 || c == 8)  // Backspace
         {
             if (!line_buffer.empty())
             {
                 line_buffer.pop_back();
-                // Erase character on screen: move back, print space, move back again
                 std::cout << "\b \b" << std::flush;
             }
         }
-        else if (c >= 32 && c < 127)  // Printable ASCII characters only
+        else if (c >= 32 && c < 127)  // Printable
         {
             line_buffer += c;
-            std::cout << c << std::flush;  // Echo character
+            std::cout << c << std::flush;
         }
-        // Ignore other control characters (arrows, etc.)
     }
-    return false;  // No complete line yet
+    return false;
 }
 
-/**
- * @brief Main event loop sử dụng select()
- */
 int main()
 {
-    // Initialize components
     NetworkClient &network = NetworkClient::getInstance();
     MessageHandler messageHandler;
     InputProcessor inputProcessor;
 
-    // Setup signal handler for Ctrl+C
     std::signal(SIGINT, signalHandler);
 
-    // Save original terminal settings
+    // Save and setup terminal
     g_stdinFlags = fcntl(STDIN_FILENO, F_GETFL, 0);
     tcgetattr(STDIN_FILENO, &g_oldTio);
-    
-    // Register cleanup on exit
     std::atexit(cleanupTerminal);
 
-    // Set stdin to non-blocking mode
     fcntl(STDIN_FILENO, F_SETFL, g_stdinFlags | O_NONBLOCK);
 
-    // Disable canonical mode and echo for stdin
     struct termios new_tio = g_oldTio;
-    new_tio.c_lflag &= ~(ICANON | ECHO);  // Disable canonical mode AND echo
-    new_tio.c_cc[VMIN] = 0;               // Don't wait for characters
-    new_tio.c_cc[VTIME] = 0;              // No timeout
+    new_tio.c_lflag &= ~(ICANON | ECHO);
+    new_tio.c_cc[VMIN] = 0;
+    new_tio.c_cc[VTIME] = 0;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_tio);
 
-    // Initialize state
+    // State machine
     ClientState currentState = ClientState::INITIAL_MENU;
-    g_currentState = &currentState;  // For signal handler
+    g_currentState = &currentState;
     StateContext context;
     std::string inputBuffer;
 
-    // Display initial prompt
     UI::clearConsole();
     UI::printLogo();
     UI::displayInitialMenuPrompt();
 
     int socket_fd = network.getSocketFd();
-    int max_fd = (socket_fd > STDIN_FILENO) ? socket_fd : STDIN_FILENO;
 
-    // Main event loop - controlled by state machine only
+    // Setup poll
+    struct pollfd fds[2];
+    fds[0].fd = STDIN_FILENO;
+    fds[0].events = POLLIN;
+    fds[1].fd = socket_fd;
+    fds[1].events = POLLIN;
+
+    // Main event loop
     while (currentState != ClientState::EXITING)
     {
-        fd_set read_fds;
-        FD_ZERO(&read_fds);
-        FD_SET(STDIN_FILENO, &read_fds);
-        FD_SET(socket_fd, &read_fds);
+        int ret = poll(fds, 2, 10);  // 10ms timeout for very responsive input
 
-        // Timeout for select (100ms)
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 100000;  // 100ms
-
-        int activity = select(max_fd + 1, &read_fds, NULL, NULL, &timeout);
-
-        if (activity < 0)
+        if (ret < 0)
         {
-            if (errno == EINTR)
-            {
-                // Interrupted by signal (e.g., Ctrl+C)
-                continue;
-            }
-            perror("select error");
-            currentState = ClientState::EXITING;
+            if (errno == EINTR) continue;
             break;
         }
 
-        // Check for user input
-        if (FD_ISSET(STDIN_FILENO, &read_fds))
+        // Process stdin
+        if (fds[0].revents & POLLIN)
         {
             if (readLineNonBlocking(inputBuffer))
             {
@@ -155,32 +130,31 @@ int main()
             }
         }
 
-        // Check for server message - process ALL buffered packets
-        if (FD_ISSET(socket_fd, &read_fds))
+        // Process ALL available packets from server
+        if (fds[1].revents & POLLIN)
         {
             Packet packet;
-            // Keep processing while there are complete packets in buffer
             while (network.receivePacket(packet))
             {
                 ClientState newState = messageHandler.handleMessage(currentState, packet, context);
-                
-                // Clear input buffer when state changes from server message
                 if (newState != currentState)
                 {
                     inputBuffer.clear();
                 }
-                
                 currentState = newState;
                 
-                if (currentState == ClientState::EXITING)
-                {
-                    break;
-                }
+                if (currentState == ClientState::EXITING) break;
+            }
+            
+            // Check if connection was closed
+            if (fds[1].revents & (POLLHUP | POLLERR))
+            {
+                UI::printErrorMessage("Mất kết nối đến server.");
+                currentState = ClientState::EXITING;
             }
         }
     }
 
-    // Cleanup is handled by atexit()
     std::cout << "\nClient đã đóng kết nối." << std::endl;
     return 0;
 }

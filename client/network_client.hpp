@@ -47,8 +47,8 @@ private:
         }
 
         struct timeval timeout;
-        timeout.tv_sec = 5; // 1 giây
-        timeout.tv_usec = 0;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100000;  // 100ms - poll already handles waiting
 
         if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
         {
