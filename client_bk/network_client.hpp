@@ -15,6 +15,8 @@
 #include "../common/utils.hpp"
 #include "../common/const.hpp"
 
+#include "session_data.hpp"
+
 /**
  * @brief Singleton quản lý kết nối mạng TCP với máy chủ.
  *
@@ -105,15 +107,6 @@ public:
     }
 
     /**
-     * @brief Lấy socket file descriptor để sử dụng với select()
-     * @return Socket fd hoặc -1 nếu chưa kết nối
-     */
-    int getSocketFd() const
-    {
-        return socket_fd;
-    }
-
-    /**
      * Gửi một gói tin tới server.
      *
      * @param messageType Kiểu của thông điệp.
@@ -165,8 +158,9 @@ public:
         }
         else if (bytes_received == 0)
         {
-            // Kết nối đã đóng - caller sẽ xử lý
+            // Kết nối đã đóng, dừng chương trình
             std::cerr << "Kết nối tới server đã đóng." << std::endl;
+            SessionData::getInstance().setRunning(false);
             return false;
         }
 
