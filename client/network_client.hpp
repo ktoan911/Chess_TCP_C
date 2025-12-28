@@ -26,7 +26,6 @@ class NetworkClient
 private:
     int socket_fd;
     std::vector<uint8_t> buffer;
-    bool connection_closed = false;  // Track disconnect
 
     /**
      * @brief Kết nối đến máy chủ với IP và cổng được cung cấp.
@@ -150,9 +149,9 @@ public:
      */
     int receivePacket(Packet &packet)
     {
-        // QUAN TRỌNG: Kiểm tra buffer hiện tại TRƯỚC khi gọi recv()
+        // Kiểm tra buffer hiện tại TRƯỚC khi gọi recv()
         // Vì có thể recv() trước đó đã nhận nhiều packets cùng lúc
-        while (buffer.size() >= 3)
+        if (buffer.size() >= Const::PACKET_HEADER_SIZE)
         {
             MessageType type = static_cast<MessageType>(buffer[0]);
             uint16_t length = (static_cast<uint16_t>(buffer[1]) << 8) |
@@ -161,19 +160,19 @@ public:
             // Chuyển từ network byte order về host byte order
             length = ntohs(length);
 
-            if (buffer.size() < 3 + length)
+            // Kiểm tra đủ dữ liệu cho payload
+            if (buffer.size() >= Const::PACKET_HEADER_SIZE + length)
             {
-                break; // Chưa nhận đủ dữ liệu cho packet này
+                std::vector<uint8_t> payload(buffer.begin() + Const::PACKET_HEADER_SIZE, 
+                                              buffer.begin() + Const::PACKET_HEADER_SIZE + length);
+                packet = Packet{type, length, payload};
+                buffer.erase(buffer.begin(), buffer.begin() + Const::PACKET_HEADER_SIZE + length);
+                return 1; // Thành công - trả về packet từ buffer
             }
-
-            std::vector<uint8_t> payload(buffer.begin() + 3, buffer.begin() + 3 + length);
-            packet = Packet{type, length, payload};
-
-            buffer.erase(buffer.begin(), buffer.begin() + 3 + length);
-            return 1; // Thành công - trả về packet từ buffer
         }
 
-        // Buffer không có đủ dữ liệu, thử recv() thêm
+        // de den duoc day => buffer 0 du du lieu de tao ra packet
+        // Nhan them du lieu tu socket
         uint8_t temp_buffer[Const::BUFFER_SIZE];
 
         ssize_t bytes_received = recv(socket_fd, temp_buffer, sizeof(temp_buffer), 0);
@@ -192,8 +191,8 @@ public:
 
         buffer.insert(buffer.end(), temp_buffer, temp_buffer + bytes_received);
 
-        // Thử parse lại sau khi nhận thêm dữ liệu
-        while (buffer.size() >= 3)
+        // Thử parse sau khi nhận thêm dữ liệu
+        if (buffer.size() >= Const::PACKET_HEADER_SIZE)
         {
             MessageType type = static_cast<MessageType>(buffer[0]);
             uint16_t length = (static_cast<uint16_t>(buffer[1]) << 8) |
@@ -202,19 +201,18 @@ public:
             // Chuyển từ network byte order về host byte order
             length = ntohs(length);
 
-            if (buffer.size() < 3 + length)
+            // Kiểm tra đủ dữ liệu cho payload
+            if (buffer.size() >= Const::PACKET_HEADER_SIZE + length)
             {
-                break; // Chưa nhận đủ dữ liệu
+                std::vector<uint8_t> payload(buffer.begin() + Const::PACKET_HEADER_SIZE, 
+                                              buffer.begin() + Const::PACKET_HEADER_SIZE + length);
+                packet = Packet{type, length, payload};
+                buffer.erase(buffer.begin(), buffer.begin() + Const::PACKET_HEADER_SIZE + length);
+                return 1; // Thành công
             }
-
-            std::vector<uint8_t> payload(buffer.begin() + 3, buffer.begin() + 3 + length);
-            packet = Packet{type, length, payload};
-
-            buffer.erase(buffer.begin(), buffer.begin() + 3 + length);
-            return 1; // Thành công
         }
 
-        return 0; // Chưa nhận đủ dữ liệu để parse packet
+        return 0; // still 0 du du lieu de tao packet
     }
 
     void closeConnection()

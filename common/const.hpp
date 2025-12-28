@@ -10,6 +10,7 @@ namespace Const
     const uint16_t SERVER_PORT = 8088;
     const std::string SERVER_IP = "127.0.0.1";
     const uint16_t BUFFER_SIZE = 1024;
+    const uint8_t PACKET_HEADER_SIZE = 3;
     const uint8_t BACKLOG = 5;
 
     // Game constants

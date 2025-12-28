@@ -271,7 +271,7 @@ private:
         UI::clearConsole();
         UI::displayChallengeDecisionPrompt(message.from_username, message.elo);
         return ClientState::CHALLENGE_RECEIVED;
-    }
+    } 
 
     ClientState handleChallengeDeclined(const std::vector<uint8_t> &payload)
     {

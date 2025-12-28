@@ -30,6 +30,8 @@ namespace UI
     // Clear the console
     void clearConsole()
     {
+        system("clear");
+        // Alternative method:
         std::cout << "\033[2J\033[H" << std::flush;
     }
 
