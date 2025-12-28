@@ -105,7 +105,7 @@ private:
             // Handle auto match found
             handleAutoMatchFound(packet.payload);
             break;
-        case MessageType::MATCH_DECLINED_NOTIFICATION:
+        case MessageType::AUTO_MATCH_DECLINED_NOTIFICATION:
             // Handle match declined notification
             handleMatchDeclinedNotification(packet.payload);
             break;

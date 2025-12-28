@@ -48,7 +48,7 @@ enum class MessageType : uint8_t
     AUTO_MATCH_FOUND = 0x56,
     AUTO_MATCH_ACCEPTED = 0x57,
     AUTO_MATCH_DECLINED = 0x58,
-    MATCH_DECLINED_NOTIFICATION = 0x59,
+    AUTO_MATCH_DECLINED_NOTIFICATION = 0x59,
     
     // Additional
     CHALLENGE_ERROR = 0x5B,

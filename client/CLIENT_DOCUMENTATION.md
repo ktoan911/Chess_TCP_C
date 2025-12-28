@@ -174,12 +174,12 @@ int main() {
 stateDiagram-v2
     [*] --> INITIAL_MENU
     
-    INITIAL_MENU --> WAITING_REGISTER_INPUT: Chọn 1
-    INITIAL_MENU --> WAITING_LOGIN_INPUT: Chọn 2
-    INITIAL_MENU --> EXITING: Chọn 3
+    INITIAL_MENU --> WAITING_REGISTER_INPUT: Chọn 1 (Register)
+    INITIAL_MENU --> WAITING_LOGIN_INPUT: Chọn 2 (Login)
+    INITIAL_MENU --> EXITING: Chọn 3 (Exit)
     
-    WAITING_REGISTER_INPUT --> WAITING_REGISTER_RESPONSE: Nhập username → Gửi RegisterMessage
-    WAITING_LOGIN_INPUT --> WAITING_LOGIN_RESPONSE: Nhập username → Gửi LoginMessage
+    WAITING_REGISTER_INPUT --> WAITING_REGISTER_RESPONSE: Nhập username
+    WAITING_LOGIN_INPUT --> WAITING_LOGIN_RESPONSE: Nhập username
     
     WAITING_REGISTER_RESPONSE --> GAME_MENU: REGISTER_SUCCESS
     WAITING_REGISTER_RESPONSE --> INITIAL_MENU: REGISTER_FAILURE
@@ -187,27 +187,27 @@ stateDiagram-v2
     WAITING_LOGIN_RESPONSE --> GAME_MENU: LOGIN_SUCCESS
     WAITING_LOGIN_RESPONSE --> INITIAL_MENU: LOGIN_FAILURE
     
-    GAME_MENU --> WAITING_AUTO_MATCH: Chọn 1 → Gửi AutoMatchRequestMessage
-    GAME_MENU --> WAITING_PLAYER_LIST: Chọn 2 → Gửi RequestPlayerListMessage
-    GAME_MENU --> INITIAL_MENU: Chọn 3
+    GAME_MENU --> WAITING_AUTO_MATCH: Chọn 1 (Auto Match)
+    GAME_MENU --> WAITING_PLAYER_LIST: Chọn 2 (Player List)
+    GAME_MENU --> INITIAL_MENU: Chọn 3 (Back)
     
     WAITING_AUTO_MATCH --> AUTO_MATCH_DECISION: AUTO_MATCH_FOUND
-    AUTO_MATCH_DECISION --> WAITING_MATCH_START: Chọn 1 → Gửi AutoMatchAcceptedMessage
-    AUTO_MATCH_DECISION --> GAME_MENU: Chọn 2 → Gửi AutoMatchDeclinedMessage
+    AUTO_MATCH_DECISION --> WAITING_MATCH_START: Accept
+    AUTO_MATCH_DECISION --> GAME_MENU: Decline
     
     WAITING_PLAYER_LIST --> PLAYER_LIST_VIEW: PLAYER_LIST
-    PLAYER_LIST_VIEW --> CHALLENGE_INPUT: Chọn 1
-    PLAYER_LIST_VIEW --> GAME_MENU: Chọn 2
+    PLAYER_LIST_VIEW --> CHALLENGE_INPUT: Chọn Challenge
+    PLAYER_LIST_VIEW --> GAME_MENU: Back
     
-    CHALLENGE_INPUT --> WAITING_CHALLENGE_RESPONSE: Nhập username → Gửi ChallengeRequestMessage
+    CHALLENGE_INPUT --> WAITING_CHALLENGE_RESPONSE: Gửi challenge
     CHALLENGE_INPUT --> GAME_MENU: Invalid target
     
     WAITING_CHALLENGE_RESPONSE --> WAITING_MATCH_START: CHALLENGE_ACCEPTED
     WAITING_CHALLENGE_RESPONSE --> GAME_MENU: CHALLENGE_DECLINED/ERROR
 
     GAME_MENU --> CHALLENGE_RECEIVED: CHALLENGE_NOTIFICATION
-    CHALLENGE_RECEIVED --> WAITING_MATCH_START: Chọn 1 → Gửi ChallengeResponseMessage(ACCEPTED)
-    CHALLENGE_RECEIVED --> GAME_MENU: Chọn 2 → Gửi ChallengeResponseMessage(DECLINED)
+    CHALLENGE_RECEIVED --> WAITING_MATCH_START: Accept
+    CHALLENGE_RECEIVED --> GAME_MENU: Decline
     
     note left of CHALLENGE_RECEIVED
         Có thể xảy ra bất kỳ lúc nào
@@ -218,40 +218,11 @@ stateDiagram-v2
     WAITING_MATCH_START --> IN_GAME_OPPONENT_TURN: GAME_START (black)
     WAITING_MATCH_START --> GAME_MENU: AUTO_MATCH_DECLINED_NOTIFICATION
     
-    IN_GAME_MY_TURN --> IN_GAME_OPPONENT_TURN: Nhập move → Gửi MoveMessage
-    IN_GAME_MY_TURN --> IN_GAME_OPPONENT_TURN: surrender/gg/quit → Gửi SurrenderMessage
+    IN_GAME_MY_TURN --> IN_GAME_OPPONENT_TURN: Gửi move/surrender
     IN_GAME_OPPONENT_TURN --> IN_GAME_MY_TURN: GAME_STATUS_UPDATE
     IN_GAME_MY_TURN --> GAME_MENU: GAME_END
     IN_GAME_OPPONENT_TURN --> GAME_MENU: GAME_END
 ```
-
-#### Chi Tiết Input và Message Gửi Đến Server
-
-Bảng sau mô tả chi tiết: khi client ở state nào, user nhập gì, thì message nào được gửi đến server.
-
-| State | User Input | Message Gửi Server | Mô Tả |
-|-------|------------|-------------------|-------|
-| `INITIAL_MENU` | `1` | *(không gửi)* | Chuyển sang `WAITING_REGISTER_INPUT` |
-| `INITIAL_MENU` | `2` | *(không gửi)* | Chuyển sang `WAITING_LOGIN_INPUT` |
-| `INITIAL_MENU` | `3` | *(không gửi)* | Thoát ứng dụng |
-| `WAITING_REGISTER_INPUT` | `<username>` | **RegisterMessage** `{username}` | Đăng ký tài khoản mới |
-| `WAITING_LOGIN_INPUT` | `<username>` | **LoginMessage** `{username}` | Đăng nhập vào hệ thống |
-| `GAME_MENU` | `1` | **AutoMatchRequestMessage** `{username}` | Yêu cầu ghép trận tự động |
-| `GAME_MENU` | `2` | **RequestPlayerListMessage** `{}` | Yêu cầu danh sách người chơi |
-| `GAME_MENU` | `3` | *(không gửi)* | Quay lại menu chính |
-| `AUTO_MATCH_DECISION` | `1` | **AutoMatchAcceptedMessage** `{game_id}` | Chấp nhận trận đấu ghép được |
-| `AUTO_MATCH_DECISION` | `2` | **AutoMatchDeclinedMessage** `{game_id}` | Từ chối trận đấu ghép được |
-| `PLAYER_LIST_VIEW` | `1` | *(không gửi)* | Chuyển sang `CHALLENGE_INPUT` |
-| `PLAYER_LIST_VIEW` | `2` | *(không gửi)* | Quay lại `GAME_MENU` |
-| `CHALLENGE_INPUT` | `<target_username>` | **ChallengeRequestMessage** `{to_username}` | Gửi thách đấu đến người chơi |
-| `CHALLENGE_RECEIVED` | `1` | **ChallengeResponseMessage** `{from_username, ACCEPTED}` | Chấp nhận thách đấu |
-| `CHALLENGE_RECEIVED` | `2` | **ChallengeResponseMessage** `{from_username, DECLINED}` | Từ chối thách đấu |
-| `IN_GAME_MY_TURN` | `<uci_move>` (vd: `e2e4`) | **MoveMessage** `{game_id, uci_move}` | Gửi nước đi |
-| `IN_GAME_MY_TURN` | `surrender` / `gg` / `quit` | **SurrenderMessage** `{game_id, from_username}` | Đầu hàng |
-
-> [!NOTE]
-> - Các state có tiền tố `WAITING_*` (trừ `WAITING_REGISTER_INPUT` và `WAITING_LOGIN_INPUT`) **không nhận input** từ user - chỉ chờ phản hồi từ server.
-> - State `IN_GAME_OPPONENT_TURN` cũng **không nhận input** - chờ đối thủ đi.
 
 #### StateContext Struct
 

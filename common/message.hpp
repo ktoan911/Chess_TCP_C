@@ -798,7 +798,7 @@ struct MatchDeclinedNotificationMessage
 
     MessageType getType() const
     {
-        return MessageType::MATCH_DECLINED_NOTIFICATION;
+        return MessageType::AUTO_MATCH_DECLINED_NOTIFICATION;
     }
 
     std::vector<uint8_t> serialize() const

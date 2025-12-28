@@ -504,7 +504,7 @@ sequenceDiagram
 | `0x56` | `AUTO_MATCH_FOUND` | S→C | Tìm thấy đối thủ |
 | `0x57` | `AUTO_MATCH_ACCEPTED` | C→S | Chấp nhận trận đấu |
 | `0x58` | `AUTO_MATCH_DECLINED` | C→S | Từ chối trận đấu |
-| `0x59` | `MATCH_DECLINED_NOTIFICATION` | S→C | Thông báo đối thủ từ chối |
+| `0x59` | `AUTO_MATCH_DECLINED_NOTIFICATION` | S→C | Thông báo đối thủ từ chối |
 | `0x5B` | `CHALLENGE_ERROR` | S→C | Lỗi thách đấu |
 
 ### 6.2 Packet Structure

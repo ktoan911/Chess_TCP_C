@@ -66,7 +66,7 @@ public:
         case MessageType::AUTO_MATCH_FOUND:
             return handleAutoMatchFound(packet.payload, context);
             
-        case MessageType::MATCH_DECLINED_NOTIFICATION:
+        case MessageType::AUTO_MATCH_DECLINED_NOTIFICATION:
             return handleMatchDeclinedNotification(packet.payload);
 
         case MessageType::PLAYER_LIST:
