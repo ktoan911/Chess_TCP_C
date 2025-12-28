@@ -27,6 +27,7 @@ private:
     int socket_fd;
     std::vector<uint8_t> buffer;
     std::mutex send_mutex;
+    bool connection_closed = false;  // Track disconnect
 
     /**
      * @brief Kết nối đến máy chủ với IP và cổng được cung cấp.
@@ -147,10 +148,34 @@ public:
      * Nhận một gói tin từ socket.
      *
      * @param packet Tham chiếu đến đối tượng Packet để lưu dữ liệu nhận được.
-     * @return Trả về true nếu nhận thành công, false nếu không có dữ liệu hoặc kết nối đóng.
+     * @return 1 nếu nhận thành công, 0 nếu không có dữ liệu, -1 nếu kết nối đóng/lỗi
      */
-    bool receivePacket(Packet &packet)
+    int receivePacket(Packet &packet)
     {
+        // QUAN TRỌNG: Kiểm tra buffer hiện tại TRƯỚC khi gọi recv()
+        // Vì có thể recv() trước đó đã nhận nhiều packets cùng lúc
+        while (buffer.size() >= 3)
+        {
+            MessageType type = static_cast<MessageType>(buffer[0]);
+            uint16_t length = (static_cast<uint16_t>(buffer[1]) << 8) |
+                              static_cast<uint16_t>(buffer[2]);
+            
+            // Chuyển từ network byte order về host byte order
+            length = ntohs(length);
+
+            if (buffer.size() < 3 + length)
+            {
+                break; // Chưa nhận đủ dữ liệu cho packet này
+            }
+
+            std::vector<uint8_t> payload(buffer.begin() + 3, buffer.begin() + 3 + length);
+            packet = Packet{type, length, payload};
+
+            buffer.erase(buffer.begin(), buffer.begin() + 3 + length);
+            return 1; // Thành công - trả về packet từ buffer
+        }
+
+        // Buffer không có đủ dữ liệu, thử recv() thêm
         uint8_t temp_buffer[Const::BUFFER_SIZE];
 
         ssize_t bytes_received = recv(socket_fd, temp_buffer, sizeof(temp_buffer), 0);
@@ -158,27 +183,26 @@ public:
         {
             if (errno == EWOULDBLOCK || errno == EAGAIN)
             {
-                return false; // Không có dữ liệu để nhận trong thời gian chờ
+                return 0; // Không có dữ liệu - poll lại sau
             }
-            perror("receive failed");
-            return false;
+            return -1; // Lỗi socket
         }
         else if (bytes_received == 0)
         {
-            // Kết nối đã đóng - caller sẽ xử lý
-            std::cerr << "Kết nối tới server đã đóng." << std::endl;
-            return false;
+            return -1; // Connection đóng
         }
 
         buffer.insert(buffer.end(), temp_buffer, temp_buffer + bytes_received);
 
+        // Thử parse lại sau khi nhận thêm dữ liệu
         while (buffer.size() >= 3)
         {
             MessageType type = static_cast<MessageType>(buffer[0]);
             uint16_t length = (static_cast<uint16_t>(buffer[1]) << 8) |
                               static_cast<uint16_t>(buffer[2]);
-
-            length = ntohs(length); // Chuyển đổi sang host byte order
+            
+            // Chuyển từ network byte order về host byte order
+            length = ntohs(length);
 
             if (buffer.size() < 3 + length)
             {
@@ -189,10 +213,10 @@ public:
             packet = Packet{type, length, payload};
 
             buffer.erase(buffer.begin(), buffer.begin() + 3 + length);
-            return true;
+            return 1; // Thành công
         }
 
-        return false; // Chưa nhận đủ dữ liệu
+        return 0; // Chưa nhận đủ dữ liệu để parse packet
     }
 
     void closeConnection()

@@ -130,11 +130,20 @@ int main()
             }
         }
 
+        // Check if connection was closed
+        if (fds[1].revents & (POLLHUP | POLLERR | POLLNVAL))
+        {
+            UI::printErrorMessage("Mất kết nối đến server.");
+            currentState = ClientState::EXITING;
+            break;
+        }
+
         // Process ALL available packets from server
         if (fds[1].revents & POLLIN)
         {
             Packet packet;
-            while (network.receivePacket(packet))
+            int result;
+            while ((result = network.receivePacket(packet)) == 1)
             {
                 ClientState newState = messageHandler.handleMessage(currentState, packet, context);
                 if (newState != currentState)
@@ -146,11 +155,12 @@ int main()
                 if (currentState == ClientState::EXITING) break;
             }
             
-            // Check if connection was closed
-            if (fds[1].revents & (POLLHUP | POLLERR))
+            // result == -1 means connection closed
+            if (result == -1)
             {
                 UI::printErrorMessage("Mất kết nối đến server.");
                 currentState = ClientState::EXITING;
+                break;
             }
         }
     }

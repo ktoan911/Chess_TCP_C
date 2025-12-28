@@ -44,7 +44,20 @@ enum class ClientState {
 };
 
 /**
- * @brief Context data lưu trữ thông tin tạm thời giữa các state
+ * @brief Context data lưu trữ thông tin tạm thời giữa các state.
+ *
+ * Context này **không dùng để lưu trữ lâu dài**, chỉ phục vụ việc
+ * truyền và giữ trạng thái dữ liệu trong quá trình client hoạt động.
+ *
+ * @details
+ * Bao gồm các nhóm dữ liệu sau:
+ * - Auto match:
+ *   - Pending game ID
+ *   - Thông tin đối thủ
+ * - Challenge:
+ *   - Thông tin người thách đấu
+ * - Cache danh sách người chơi
+ * - Bộ đếm timeout cho các trạng thái chờ
  */
 struct StateContext {
     // Auto match data

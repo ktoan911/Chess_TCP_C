@@ -33,6 +33,7 @@ public:
     {
         switch (packet.type)
         {
+        // login and register
         case MessageType::REGISTER_SUCCESS:
             return handleRegisterSuccess(packet.payload);
             
@@ -45,7 +46,8 @@ public:
         case MessageType::LOGIN_FAILURE:
             return handleLoginFailure(packet.payload);
 
-        case MessageType::GAME_START:
+        // in-game messages
+            case MessageType::GAME_START:
             return handleGameStart(packet.payload);
             
         case MessageType::GAME_STATUS_UPDATE:
@@ -57,6 +59,7 @@ public:
         case MessageType::GAME_END:
             return handleGameEnd(packet.payload);
 
+        // matchmaking and challenges
         case MessageType::CHALLENGE_NOTIFICATION:
             return handleChallengeNotification(packet.payload, context);
 
