@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include <mutex>
+#include <vector>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
@@ -19,14 +19,13 @@
  * @brief Singleton quản lý kết nối mạng TCP với máy chủ.
  *
  * Lớp NetworkClient là một singleton dùng để thiết lập và duy trì kết nối TCP với máy chủ.
- * Nó cung cấp các phương thức để gửi và nhận gói tin, đảm bảo tính thread-safe khi gửi dữ liệu.
+ * Nó cung cấp các phương thức để gửi và nhận gói tin.
  */
 class NetworkClient
 {
 private:
     int socket_fd;
     std::vector<uint8_t> buffer;
-    std::mutex send_mutex;
     bool connection_closed = false;  // Track disconnect
 
     /**
@@ -123,7 +122,6 @@ public:
      */
     bool sendPacket(MessageType messageType, const std::vector<uint8_t> &payload)
     {
-        std::lock_guard<std::mutex> lock(send_mutex);
 
         Packet packet;
         packet.type = messageType;

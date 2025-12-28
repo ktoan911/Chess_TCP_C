@@ -216,6 +216,7 @@ stateDiagram-v2
     
     WAITING_MATCH_START --> IN_GAME_MY_TURN: GAME_START (white)
     WAITING_MATCH_START --> IN_GAME_OPPONENT_TURN: GAME_START (black)
+    WAITING_MATCH_START --> GAME_MENU: MATCH_DECLINED_NOTIFICATION
     
     IN_GAME_MY_TURN --> IN_GAME_OPPONENT_TURN: Gửi move/surrender
     IN_GAME_OPPONENT_TURN --> IN_GAME_MY_TURN: GAME_STATUS_UPDATE
@@ -257,7 +258,6 @@ class NetworkClient {
 private:
     int socket_fd;
     std::vector<uint8_t> buffer;    // Buffer cho partial packets
-    std::mutex send_mutex;          // Thread-safe sending
     
     NetworkClient() {
         connectToServer(Const::SERVER_IP, Const::SERVER_PORT);
@@ -275,7 +275,7 @@ public:
 
 | Method | Return | Mô tả |
 |--------|--------|-------|
-| `sendPacket(type, payload)` | `bool` | Gửi packet đến server (thread-safe) |
+| `sendPacket(type, payload)` | `bool` | Gửi packet đến server |
 | `receivePacket(packet)` | `int` | 1=success, 0=no data, -1=error |
 | `getSocketFd()` | `int` | Lấy socket fd cho poll() |
 | `closeConnection()` | `void` | Đóng kết nối |
