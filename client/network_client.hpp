@@ -28,57 +28,73 @@ private:
     std::vector<uint8_t> buffer;
 
     /**
-     * @brief Kết nối đến máy chủ với IP và cổng được cung cấp.
+     * @brief Kết nối đến máy chủ với port discovery.
      *
-     * Tạo socket, thiết lập timeout, và kết nối TCP tới máy chủ. Xử lý các lỗi liên quan.
+     * Thử kết nối lần lượt các port từ base_port đến base_port + MAX_PORT_ATTEMPTS - 1
+     * cho đến khi tìm được server đang chạy.
      *
      * @param ip IP của máy chủ.
-     * @param port Cổng của máy chủ.
+     * @param base_port Cổng khởi đầu để thử kết nối.
      * @return true nếu kết nối thành công, false nếu thất bại.
      */
-    bool connectToServer(const std::string &ip, uint16_t port)
+    bool connectToServer(const std::string &ip, uint16_t base_port)
     {
-        socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (socket_fd < 0)
+        uint16_t current_port = base_port;
+
+        for (int attempt = 0; attempt < Const::MAX_PORT_ATTEMPTS; ++attempt)
         {
-            perror("socket failed");
-            return false;
+            // Tạo socket mới cho mỗi lần thử
+            socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+            if (socket_fd < 0)
+            {
+                perror("socket failed");
+                return false;
+            }
+
+            struct timeval timeout;
+            timeout.tv_sec = 0;
+            timeout.tv_usec = 100000;  // 100ms - poll already handles waiting
+
+            if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
+            {
+                perror("setsockopt failed");
+            }
+
+            sockaddr_in server_address;
+            std::memset(&server_address, 0, sizeof(server_address));
+            server_address.sin_family = AF_INET;
+            server_address.sin_port = htons(current_port);
+
+            if (inet_pton(AF_INET, ip.c_str(), &server_address.sin_addr) <= 0)
+            {
+                perror("Invalid address/ Address not supported");
+                close(socket_fd);
+                return false;
+            }
+
+            if (connect(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) == 0)
+            {
+                // Kết nối thành công
+                std::cout << "Đã kết nối tới server trên: " << ip << ":" << current_port << std::endl;
+                return true;
+            }
+
+            // Kết nối thất bại, đóng socket và thử port tiếp theo
+            close(socket_fd);
+            socket_fd = -1;
+            ++current_port;
         }
 
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 100000;  // 100ms - poll already handles waiting
-
-        if (setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
-        {
-            perror("setsockopt failed");
-        }
-
-        sockaddr_in server_address;
-        std::memset(&server_address, 0, sizeof(server_address));
-        server_address.sin_family = AF_INET;
-        server_address.sin_port = htons(port);
-
-        if (inet_pton(AF_INET, ip.c_str(), &server_address.sin_addr) <= 0)
-        {
-            perror("Invalid address/ Address not supported");
-            return false;
-        }
-
-        if (connect(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-        {
-            perror("Connection Failed");
-            return false;
-        }
-
-        std::cout << "Đã kết nối tới server trên: " << ip << ":" << port << std::endl;
-        return true;
+        // Không kết nối được với bất kỳ port nào
+        std::cerr << "Không thể kết nối tới server trên các port "
+                  << base_port << "-" << (base_port + Const::MAX_PORT_ATTEMPTS - 1) << std::endl;
+        return false;
     }
 
     // Private constructor for Singleton
     NetworkClient() : socket_fd(-1)
     {
-        if (!connectToServer(Const::SERVER_IP, Const::SERVER_PORT))
+        if (!connectToServer(Const::SERVER_IP, Const::SERVER_PORT_BASE))
         {
             std::cerr << "Không thể kết nối tới server" << std::endl;
             exit(EXIT_FAILURE);

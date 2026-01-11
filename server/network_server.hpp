@@ -95,68 +95,68 @@ private:
     std::mutex clients_mutex;
 
     /**
-     * @brief Khởi tạo máy chủ với cổng được chỉ định.
+     * @brief Khởi tạo máy chủ với cổng được chỉ định, hỗ trợ port fallback.
      *
      * Các bước thực hiện:
      * 1. Tạo socket mới với socket()
-     * 2. Thiết lập địa chỉ server (IP + port)
-     * 3. Gắn (bind) socket với địa chỉ đã thiết lập
+     * 2. Thiết lập SO_REUSEADDR để restart nhanh
+     * 3. Thử bind với port fallback nếu port đang bị sử dụng
      * 4. Bắt đầu lắng nghe (listen) các kết nối đến
-     * 
-     * Nếu bất kỳ bước nào thất bại, chương trình sẽ in lỗi và thoát.
      *
-     * @param port Số cổng mà server sẽ lắng nghe kết nối (thường là 8080, 3000, v.v.)
+     * @param base_port Số cổng khởi đầu mà server sẽ thử lắng nghe
+     * @return Port thực tế đang sử dụng
      */
-    void initialize(uint16_t port)
+    uint16_t initialize(uint16_t base_port)
     {
         // ===== BƯỚC 1: TẠO SOCKET =====
-        // socket(AF_INET, SOCK_STREAM, 0):
-        // - AF_INET: Sử dụng IPv4
-        // - SOCK_STREAM: Sử dụng TCP (connection-oriented, reliable)
-        // - 0: Giao thức mặc định cho TCP
-        // Trả về: file descriptor (số nguyên) nếu thành công, -1 nếu thất bại
         server_fd = socket(AF_INET, SOCK_STREAM, 0);
         if (server_fd == -1)
         {
-            perror("socket failed");  // In ra thông báo lỗi
-            exit(EXIT_FAILURE);       // Thoát chương trình với mã lỗi
+            perror("socket failed");
+            exit(EXIT_FAILURE);
         }
 
-        // ===== BƯỚC 2: THIẾT LẬP ĐỊA CHỈ =====
-        sockaddr_in address;  // Cấu trúc chứa địa chỉ IP và port
-        
-        // Khởi tạo tất cả byte của address về 0
-        // memset(&address, 0, sizeof(address)) đảm bảo không có dữ liệu rác
-        std::memset(&address, 0, sizeof(address));
-        
-        // Thiết lập họ địa chỉ là IPv4
-        address.sin_family = AF_INET;
-        
-        // INADDR_ANY = 0.0.0.0 - lắng nghe trên tất cả các network interface
-        // (WiFi, Ethernet, localhost, v.v.)
-        address.sin_addr.s_addr = INADDR_ANY;
-        
-        // htons() = Host TO Network Short
-        // Chuyển đổi số port từ byte order của máy (host) sang network byte order
-        // Network byte order là big-endian (byte cao trước)
-        address.sin_port = htons(port);
-
-        // ===== BƯỚC 3: BIND SOCKET VỚI ĐỊA CHỈ =====
-        // Gắn socket với địa chỉ IP và port đã thiết lập
-        // Sau khi bind thành công, socket sẽ "chiếm giữ" port này
-        // Không chương trình nào khác có thể dùng port này cho đến khi ta đóng socket
-        if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+        // ===== BƯỚC 2: THIẾT LẬP SO_REUSEADDR =====
+        // Cho phép restart server nhanh mà không cần chờ TIME_WAIT
+        int opt = 1;
+        if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
         {
-            perror("bind failed");    // In lỗi (ví dụ: "Address already in use")
-            close(server_fd);         // Đóng socket trước khi thoát
+            perror("setsockopt SO_REUSEADDR failed");
+            // Không fatal, tiếp tục
+        }
+
+        // ===== BƯỚC 3: THỬ BIND VỚI PORT FALLBACK =====
+        sockaddr_in address;
+        std::memset(&address, 0, sizeof(address));
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = INADDR_ANY;
+
+        uint16_t current_port = base_port;
+        bool bound = false;
+
+        for (int attempt = 0; attempt < Const::MAX_PORT_ATTEMPTS; ++attempt)
+        {
+            address.sin_port = htons(current_port);
+
+            if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) == 0)
+            {
+                bound = true;
+                break;
+            }
+
+            std::cerr << "Port " << current_port << " đang bị sử dụng, thử port tiếp theo..." << std::endl;
+            ++current_port;
+        }
+
+        if (!bound)
+        {
+            std::cerr << "Không thể bind với bất kỳ port nào trong phạm vi "
+                      << base_port << "-" << (base_port + Const::MAX_PORT_ATTEMPTS - 1) << std::endl;
+            close(server_fd);
             exit(EXIT_FAILURE);
         }
 
         // ===== BƯỚC 4: BẮT ĐẦU LẮNG NGHE =====
-        // listen(server_fd, backlog):
-        // - server_fd: socket đã được bind
-        // - Const::BACKLOG: Số lượng kết nối tối đa có thể chờ trong hàng đợi
-        //   (nếu server đang bận xử lý, các kết nối mới sẽ chờ trong queue)
         if (listen(server_fd, Const::BACKLOG) < 0)
         {
             perror("listen failed");
@@ -164,10 +164,8 @@ private:
             exit(EXIT_FAILURE);
         }
 
-        // In thông báo server đã sẵn sàng
-        // inet_ntoa(): chuyển địa chỉ IP từ dạng số sang chuỗi (ví dụ: "192.168.1.1")
-        // ntohs(): Network TO Host Short - chuyển port từ network byte order về host byte order
         std::cout << "Server đang lắng nghe trên: " << inet_ntoa(address.sin_addr) << ":" << ntohs(address.sin_port) << " ..." << std::endl;
+        return current_port;
     }
 
     // ===== CONSTRUCTOR RIÊNG TƯ (PRIVATE) =====
